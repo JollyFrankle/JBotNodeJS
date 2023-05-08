@@ -20,8 +20,9 @@ export default {
     let [guildId, channelId, messageId] = link.split("/").slice(4)
     let { client } = await import("../helpers/bot.js");
 
-    // interaction.client --> scopenya hanya guild ini
-    // client --> scopenya semua guild
+    // interaction.client --> tergantung siapa si client (bisa mainBot atau devBot)
+    // client --> sudah pasti mainBot
+    // jadi channel2nya juga muncul beda2
 
     let channel = client.channels.cache.get(channelId)
     let message = await channel.messages.fetch(messageId)
