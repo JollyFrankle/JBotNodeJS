@@ -1,0 +1,592 @@
+const Discord = require("discord.js");
+const axios = require('axios').default;
+const Database = require("@replit/database");
+const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES", "GUILD_MEMBERS", "GUILD_VOICE_STATES"], fetchAllMembers: true });
+const webServer = require("./server");
+
+const pr = require("./modules/dopromise");
+const dcNotify = require("./modules/notify");
+const dcEmbed = require("./modules/embed");
+const dcCal = require("./modules/calendar");
+const dcRRI = require("./modules/rrikupang");
+
+const monitor = require("./modules/ping-monitor");
+
+var URL_SITKUL = "https://kuliah.uajy.ac.id/";
+// URL_SITKUL = "https://himaforka-uajy.org/hi1.php";
+
+async function main() {
+  let r1 = await monitor.add("SITKUL", "Situs Kuliah", URL_SITKUL, 10);
+  let r2 = await monitor.addCh("SITKUL", "955043376372252702");
+  let r3 = await monitor.removeCh("SITKUL", "955314117072277544");
+  console.log(r1, r2, r3);
+  await monitor.start();
+}
+main();
+
+const db = new Database();
+
+/*
+ * General settings
+ */
+process.on('uncaughtException', function(e) {
+  console.error(new Date().toUTCString() + ": EXCEPTION FOUND:\r\n" + e.message);
+});
+
+async function sendGeneralCL(msgText, list) {
+  let sentMsgs = [];
+  if (list && list.length > 0 && msgText) {
+    for (let i in list) {
+      let sentMsg = await client.channels.cache.find(ch => ch.id == list[i]).send(msgText);
+      sentMsgs.push([list[i], sentMsg.id]);
+    }
+  }
+  return sentMsgs;
+}
+
+function splitToKeys(text, ins = ":") {
+  let arr_str = text.split(ins);
+  // hapus instruksi awal yang tidak penting:
+  arr_str.splice(0, 1);
+
+  var keyVals = {};
+  for (let i in arr_str) {
+    // to array:
+    var arrCopy = arr_str[i].split(" ").map((x) => x);
+    // temp instruction code var:
+    var label = arrCopy[0];
+    // remove instruction code:
+    arrCopy.splice(0, 1);
+    // to string:
+    arrCopy = arrCopy.join(" ");
+    // masukkan, rapikan (hapus spasi di awal dan akhir):
+    keyVals[label] = arrCopy.trim();
+  }
+  return keyVals;
+}
+
+module.exports = {
+  client: function() {
+    return client;
+  },
+  sendMsg: sendGeneralCL
+}
+
+/*
+ * Time interval set
+ */
+
+var nextRefrRRI = null;
+function setRRI() {
+  dcRRI.get().then((res) => {
+    nextRefrRRI = res.nextRefr;
+    client.user.setActivity(res.eventName, {
+      type: "LISTENING"
+    });
+    console.log("RRI activity updated [OK]");
+    console.log(nextRefrRRI);
+  })
+}
+var currDate = new Date();
+console.log(new Date().toUTCString())
+setTimeout(() => {
+  checkEveryMinute();
+}, (60 - currDate.getSeconds()) * 1000)
+
+function checkEveryMinute() {
+  const thisIntr = async () => {
+    let thisDate = new Date();
+    console.log(thisDate.toUTCString());
+    if (thisDate >= nextRefrRRI) {
+      setRRI();
+    }
+    if (thisDate.getHours() == (15 - 7) && thisDate.getMinutes() == 0) {
+      // reminder ujian
+      const { genSummary } = require("./modules/ujian.js");
+      let ujianSummary = await genSummary();
+      if (ujianSummary[0] === true) {
+        sendGeneralCL({ embeds: ujianSummary[1] }, "ifest");
+      }
+    }
+    if (thisDate.getMinutes() == 59) {
+      // menit ke-59: reset interval supatya tidak offset
+      setTimeout(thisIntr, (60 - thisDate.getSeconds()) * 1000);
+      return;
+    }
+    setTimeout(thisIntr, 60000);
+  }
+  thisIntr();
+}
+
+/*
+ * Bot config
+ */
+client.on("ready", () => {
+  console.log("Connected as " + client.user.tag);
+  setRRI();
+})
+
+client.on("messageCreate", async (msg) => {
+  if (msg.author.bot)
+    return;
+
+  var mCon = msg.content.split(/(\s+)/).filter(function(value, index, arr) {
+    return value.trim() != "";
+  });
+  let mConFull = msg.content, mIns = mCon[1], cmd = "!jb";
+
+  if (mCon[0] !== cmd)
+    return;
+
+  if (mIns === "test") {
+    let currSt = monitor.getCurrentState(), currDb = await monitor.getDbState();
+    msg.channel.send("Non-DB state:\r\n```json\r\n" + JSON.stringify(currSt, null, "  ") + "\r\n```");
+    msg.channel.send("DB state:\r\n```json\r\n" + JSON.stringify(currDb, null, "  ") + "\r\n```");
+  }
+
+  if (mIns === "birthday") {
+    switch (mCon[2]) {
+      case "next":
+        var type = mCon[3] !== undefined ? mCon[3] : "current";
+        var offset = mCon[4] !== undefined ? Number(mCon[4]) : 0;
+        dcCal.getNextBirthday(type, { offset: offset - 1 }).then((res) => {
+          msg.channel.send(res);
+        });
+        break;
+
+      case "npm":
+        var npm = mCon[3] !== undefined ? mCon[3] : null;
+        if (npm !== null) {
+          dcCal.getBirthdayByField("npm", npm).then((res) => {
+            msg.channel.send(res);
+          });
+        } else {
+          msg.channel.send({
+            embeds: [dcEmbed.sendCmdErrException(mConFull, [
+              {
+                name: "`" + cmd + " birthday npm [<npm>]`",
+                value: "Mendapatkan tanggal ulang tahun pengurus berdasarkan input `[<npm>]`."
+              }
+            ])]
+          });
+        }
+        break;
+
+      case "nama":
+        var nama = mCon[3] !== undefined ? mCon[3] : null;
+        if (nama !== null) {
+          dcCal.getBirthdayByField("nama", nama).then((res) => {
+            msg.channel.send(res);
+          });
+        } else {
+          msg.channel.send({
+            embeds: [dcEmbed.sendCmdErrException(mConFull, [
+              {
+                name: "`" + cmd + " birthday nama [<nama>]`",
+                value: "Mendapatkan tanggal ulang tahun pengurus berdasarkan input `[<nama>]` (tidak harus lengkap)."
+              }
+            ])]
+          });
+        }
+        break;
+
+      default:
+        msg.channel.send({
+          embeds: [dcEmbed.sendCmdErrException(mConFull, [
+            {
+              name: "`" + cmd + " birthday next [current|all|<angkatan>] [page (1-20)]`",
+              value: "Mendapatkan ulang tahun selanjutnya bagi pengurus.\r\n`all`: semua angkatan\r\n`current`: angkatan saat ini\r\n`<angkatan>`: angkatan (cth. `2021`)"
+            },
+            {
+              name: "`" + cmd + " birthday npm [<npm>]`",
+              value: "Mendapatkan tanggal ulang tahun pengurus berdasarkan input `[<npm>]`."
+            },
+            {
+              name: "`" + cmd + " birthday nama [<nama>]`",
+              value: "Mendapatkan tanggal ulang tahun pengurus berdasarkan input `[<nama>]` (tidak harus lengkap)."
+            }
+          ])]
+        });
+        break;
+    }
+    return;
+  }
+
+  if (mIns === "ifest") {
+    switch (mCon[2]) {
+      case "hours":
+        var hours = (mCon[3] === undefined || mCon[3] <= 0) ? 1 : mCon[3];
+        await axios.get("https://ifest.uajy.ac.id/api/hourly-dash-req.php", {
+          params: {
+            nosend: "true",
+            hour: hours
+          }
+        })
+          .then((res) => {
+            msg.channel.send({
+              embeds: [dcEmbed.fromQ(res.data.data)]
+            });
+          })
+          .catch((res) => {
+            console.log(res);
+            msg.channel.send({
+              embeds: [dcEmbed.sendAPIexception(res.status, res.statusText)]
+            })
+          });
+        break;
+
+      case "range":
+        if (mCon[3] === undefined || mCon[4] === undefined || mCon[5] === undefined || mCon[6] === undefined) {
+          msg.channel.send({
+            embeds: [dcEmbed.sendCmdErrException(mConFull, [
+              {
+                name: "`" + cmd + " ifest range [<start>] [<end>]`",
+                value: "Menampilkan laporan dari range `[<start>]` hingga `[<end>]` (format: `YYYY-MM-DD HH:mm:ss`)."
+              }
+            ])]
+          });
+          break;
+        }
+        await axios.get("https://ifest.uajy.ac.id/api/hourly-dash-req.php", {
+          params: {
+            nosend: "true",
+            type: "range",
+            start: mCon[3] + " " + mCon[4],
+            end: mCon[5] + " " + mCon[6]
+          }
+        })
+          .then((res) => {
+            msg.channel.send({
+              embeds: [dcEmbed.fromQ(res.data.data)]
+            }).catch((err) => {
+              msg.channel.send({
+                embeds: [dcEmbed.sendAPIexception("MessageOverflow", "Kueri ini terlalu besar untuk dikirim!")]
+              })
+            });
+          })
+          .catch((res) => {
+            console.log(res);
+            msg.channel.send({
+              embeds: [dcEmbed.sendAPIexception(res.status, res.statusText)]
+            })
+          });
+        break;
+
+      default:
+        msg.channel.send({
+          embeds: [dcEmbed.sendCmdErrException(mConFull, [
+            {
+              name: "`" + cmd + " ifest hours [<hours>]`",
+              value: "Menampilkan laporan untuk aktivitas selama `[<hours>]` jam terakhir (maks. 24 jam)."
+            },
+            {
+              name: "`" + cmd + " ifest range [<start>] [<end>]`",
+              value: "Menampilkan laporan dari range `[<start>]` hingga `[<end>]` (format: `YYYY-MM-DD HH:mm:ss`)."
+            }
+          ])]
+        });
+        break;
+    }
+  }
+
+  if (mIns === "reply") {
+    var list = mCon[2], content = mCon.map((x) => x);
+    content.splice(0, 3);
+    console.log(content);
+    content = content.join(' ');
+    await pr.do(db.get(list));
+    var l = pr.get();
+    if (l && l.length > 0) {
+      for (let i in l) {
+        client.channels.cache.find(ch => ch.id == l[i]).send(content);
+      }
+    }
+  }
+
+  if (mIns === "notify") {
+    var target_list = mCon[3] === undefined ? "" : mCon[3];
+    if (!["notify_list", "ifest", "kominfo", "chill-kita", "kominfo", "himaforka-general"].includes(target_list)) {
+      // tidak benar listnya, batalkan command
+      mCon[2] = null;
+    }
+    switch (mCon[2]) {
+      case "addToList":
+        dcNotify.do("add", mCon[3], target_list).then((e) => {
+          if (e[0] == 1)
+            msg.channel.send("**[!] Eksekusi Berhasil!**\r\n" + e[1]);
+          else if (e[0] == 0)
+            msg.channel.send("**[!] Eksekusi Gagal!**\r\n" + e[1]);
+        })
+        break;
+
+      case "add":
+        dcNotify.do("add", msg.channelId, target_list).then((e) => {
+          if (e[0] == 1)
+            msg.channel.send("**[!] Eksekusi Berhasil!**\r\n" + e[1]);
+          else if (e[0] == 0)
+            msg.channel.send("**[!] Eksekusi Gagal!**\r\n" + e[1]);
+        })
+        break;
+
+      case "remove":
+        dcNotify.do("delete", msg.channelId, target_list).then((e) => {
+          if (e[0] == 1)
+            msg.channel.send("**[!] Eksekusi Berhasil!**\r\n" + e[1]);
+          else if (e[0] == 0)
+            msg.channel.send("**[!] Eksekusi Gagal!**\r\n" + e[1]);
+        })
+        break;
+
+      case "status":
+        dcNotify.do("check", msg.channelId, target_list).then((e) => {
+          if (e == 1)
+            msg.channel.send("**[!] Notifikasi ulang tahun dan reminder untuk channel ini berstatus AKTIF**");
+          if (e == 0)
+            msg.channel.send("**[!] Notifikasi ulang tahun dan reminder untuk channel ini berstatus TIDAK AKTIF**");
+        })
+        break;
+
+      default:
+        msg.channel.send({
+          embeds: [dcEmbed.sendCmdErrException(mConFull, [
+            {
+              name: "`" + cmd + " notify add [list_name]`",
+              value: "Menambahkan channel ini ke daftar penerima notifikasi aktif pada list [list_name]."
+            },
+            {
+              name: "`" + cmd + " notify remove [list_name]`",
+              value: "Menghapus channel ini dari daftar penerima notifikasi aktif pada [list_name]."
+            },
+            {
+              name: "`" + cmd + " notify status [list_name]`",
+              value: "Mengembalikan status notifikasi untuk channel ini pada [list_name]."
+            }
+          ])]
+        });
+        break;
+    }
+  }
+
+  if (mIns == "ujian") {
+    const dcUjian = require("./modules/ujian");
+    var msgKeys = splitToKeys(mConFull);
+    switch (mCon[2]) {
+      case "addMK":
+        await pr.do(dcUjian.addMK(msgKeys["kode"], msgKeys["nama"], msgKeys["tanggal"], msgKeys["sesi"], msgKeys["sifat"]));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "removeMK":
+        await pr.do(dcUjian.removeMK(mCon[3]));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "setJadwal":
+        await pr.do(dcUjian.setJadwal(mCon[3], mCon[4]));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "getAll":
+        await pr.do(dcUjian.getAll());
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "getByKode":
+        await pr.do(dcUjian.getByKode(mCon[3]));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "addNote":
+        var content = mCon.map((x) => x);
+        content.splice(0, 4);
+        console.log(content);
+        content = content.join(' ');
+        await pr.do(dcUjian.addNote(mCon[3], content, msg.author.tag));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "removeNote":
+        await pr.do(dcUjian.removeNote(mCon[3], mCon[4]));
+        msg.channel.send(pr.get()[1]);
+        break;
+
+      case "genSummary":
+        await pr.do(dcUjian.genSummary(mCon[3]));
+        msg.channel.send(pr.get()[1]);
+        break;
+    }
+  }
+
+  if (mIns == "radio") {
+    const dcStream = require("./modules/rri-streaming");
+    // const { join } = require('node:path');
+    const dcVoice = require('@discordjs/voice');
+
+    var msgKeys = splitToKeys(mConFull), connection = null;
+    if (msgKeys["guild"] && msgKeys["channel"]) {
+      let gId = client.guilds.cache.find(n => n.name == msgKeys["guild"]);
+      if (!gId)
+        return console.error("Guild tidak ditemukan!");
+
+      let cId = client.channels.cache.find(n => n.name == msgKeys["channel"] && n.guildId == gId.id);
+      if (!cId)
+        return console.error("Channel tidak ditemukan!");
+
+      connection = dcVoice.joinVoiceChannel({
+        channelId: cId.id,
+        guildId: gId.id,
+        adapterCreator: gId.voiceAdapterCreator
+      });
+    } else {
+      const voiceChn = client.channels.cache.get(msg.member.voice.channelId);
+      if (!voiceChn)
+        return console.error("User belum join voice channel di sini!");
+
+      connection = dcVoice.joinVoiceChannel({
+        channelId: msg.member.voice.channelId,
+        guildId: msg.guildId,
+        adapterCreator: msg.guild.voiceAdapterCreator
+      });
+    }
+
+    console.log(connection.joinConfig);
+
+    const player = dcVoice.createAudioPlayer({
+      behaviors: {
+        noSubscriber: dcVoice.NoSubscriberBehavior.Play,
+      },
+    });
+
+    var url = null, volume = null;
+    switch (msgKeys["st"]) {
+      case "pro2":
+        url = "http://36.66.101.141:9213/rrikupangpro2.mp3";
+        volume = 1.1;
+        break;
+      case "pro4":
+        url = "http://36.66.101.141:9213/rrikupangpro4.mp3";
+        volume = 2;
+        break;
+      case "bell":
+        url = "https://v3.himaforka-uajy.org/api/SFX-2bell.mp3";
+        volume = 1;
+        break;
+      case "pro1": default:
+        url = "http://36.66.101.141:9213/rrikupangpro1.mp3";
+        volume = 1;
+        break;
+
+    }
+    const resource = dcVoice.createAudioResource(url, { inlineVolume: true });
+    if (msgKeys["volume"] && Number(msgKeys["volume"]) > 10) {
+      resource.volume.setVolume(Number(msgKeys["volume"]) / 100);
+    } else {
+      resource.volume.setVolume(volume);
+    }
+
+    player.on("error", (e) => {
+      console.log(e);
+      player.play()
+    });
+
+    switch (mCon[2]) {
+      case "join":
+        connection.subscribe(player);
+        player.play(resource);
+        break;
+      case "stop":
+        player.stop();
+        connection.disconnect();
+        connection.destroy();
+        break;
+    }
+  }
+
+  if (msg.channelId == "955043376372252702" && mIns == "msg") {
+    switch (mCon[2]) {
+      case "remove":
+        var msgKeys = splitToKeys(mConFull);
+        if (!msgKeys["guild"] || !msgKeys["channel"] || !msgKeys["mId"]) {
+          return msg.reply("Parameter `:guild` atau `:channel` atau `:mId` tidak ditetapkan!");
+        }
+        let gId = client.guilds.cache.find(n => n.name == msgKeys["guild"]);
+        if(!gId)
+          return msg.reply("Guild tidak ditemukan!");
+        
+        let cId = client.channels.cache.find(n => n.name == msgKeys["channel"] && n.guildId == gId.id);
+        if(!cId)
+          return msg.reply("Channel tidak ditemukan!");
+        
+        let fetchedMsg = await cId.messages.fetch(msgKeys["mId"])
+          .catch((e) => {
+            return null;
+          });
+        if(!fetchedMsg)
+          return msg.reply("Pesan yang dicari tidak ditemukan!");
+        
+        fetchedMsg.delete();
+        msg.reply("Berhasil menghapus pesan!");
+        break;
+    }
+  }
+  
+  if (msg.channelId == "955043376372252702" && mIns == "role") {
+    var roleN = mCon.map((x) => x); // ins: mCon[2], username = mCon[3]
+    roleN.splice(0, 4);
+    roleN = roleN.join(' ');
+    // console.log(roleN, mCon);
+    switch (mCon[2]) {
+      case "add":
+        var gId = "346135882983538698"; // test server
+        gId = "881530119989125120"; // himaforka kobam
+        //gId = "762616541984063528"; // alamsatu kobam
+        guild = client.guilds.cache.get(gId);
+        await pr.do(guild.members.fetch());
+        var gRoleList = guild.roles;
+        // console.log(gRoleList);
+        var memberId = msg.mentions.members.first().user.id;
+        if (memberId === undefined) {
+          msg.channel.send("**[!] Tidak ada user yang ditag!**");
+          return;
+        }
+        console.log(new Date().toUTCString() + ": " + memberId + " tambah role di Himaforkas!");
+        var gMember = guild.members.cache.find(u => u.user.id == memberId);
+        // console.log(gMember);
+
+        var role = gRoleList.cache.find(r => r.name == roleN);
+        // console.log(role);
+        gMember.roles.add(role);
+        msg.channel.send("**[!] Berhasil eksekusi!**");
+        break;
+
+      case "remove":
+        var gId = "346135882983538698"; // test server
+        gId = "881530119989125120"; // himaforka kobam
+        //gId = "762616541984063528"; // alamsatu kobam
+        guild = client.guilds.cache.get(gId);
+        await pr.do(guild.members.fetch());
+        var gRoleList = guild.roles;
+        // console.log(gRoleList);
+        var memberId = msg.mentions.members.first().user.id;
+        if (memberId === undefined) {
+          msg.channel.send("**[!] Tidak ada user yang ditag!**");
+          return;
+        }
+        console.log(new Date().toUTCString() + ": " + memberId + " tambah role di Himaforkas!");
+        var gMember = guild.members.cache.find(u => u.user.id == memberId);
+        // console.log(gMember);
+
+        var role = gRoleList.cache.find(r => r.name == roleN);
+        // console.log(role);
+        gMember.roles.remove(role);
+        msg.channel.send("**[!] Berhasil eksekusi!**");
+        break;
+    }
+  }
+
+})
+
+webServer.keepAlive();
+client.login(process.env['TOKEN']).then().catch(reason => {
+  console.log("Login failed: " + reason);
+});

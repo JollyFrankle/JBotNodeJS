@@ -1,0 +1,30 @@
+body {
+    font-family: 'Roboto Mono', monospace;
+}
+
+.chart-container {
+    background: #000;
+    padding: 1.25rem;
+    border-radius: .25rem;
+}
+
+.chart {
+    width: 100%;
+    max-height: 50vh;
+}
+
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(1rem);
+    z-index: 1100;
+    user-select: none;
+    transition: 0.5s;
+}

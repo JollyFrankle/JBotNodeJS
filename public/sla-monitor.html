@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+
+<head>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Analisis SLA &bull; JollyBOT</title>
+        <!-- Icon -->
+        <link rel="icon" href="https://jbotnode.jollyfrankle.repl.co/public/images/logo.jpg" type="image/x-icon">
+
+        <!-- Bootstrap 5.2.1 -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/js/bootstrap.bundle.min.js"></script>
+
+        
+        <!-- Roboto Mono -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+        
+        <!-- font awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+        
+        <!-- Custom -->
+        <link href="./assets/css/sla-monitor.css" rel="stylesheet">
+<!--         <link href="./assets/css/bs-dark.css" rel="stylesheet"> -->
+    </head>
+
+<body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="text-center">
+            <div class="spinner-border text-primary fs-1" style="height: 3rem; width: 3rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mb-0 mt-3">Mempersiapkan laporan,<br />mohon tunggu hingga 10 detik.</p>
+        </div>
+    </div>
+    <main class="my-4 container">
+        <div class="card mb-4" style="border-bottom: .25rem solid var(--bs-primary)">
+            <div class="card-body d-md-flex align-items-center text-center text-md-start">
+                <img src="https://jbotnode.jollyfrankle.repl.co/public/images/logo.jpg" alt="Logo" style="width: 5rem;"
+                    class="rounded shadow me-0 me-md-3 mb-2 mb-md-0" />
+                <div>
+                    <h2 class="mb-2">Analisis SLA</h2>
+                    <p class="mb-0">
+                        <span class="badge text-bg-primary">JollyBOT</span> Perkakas Analitik
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-6 mb-3">
+                <!-- Nama situs -->
+                <div>
+                    <p class="mb-0 small text-muted">Nama situs</p>
+                    <h3 class="mb-0 fw-bold text-truncate" id="iden_name">&bull;&bull;&bull;</h3>
+                </div>
+                <hr />
+                <!-- URL -->
+                <div>
+                    <p class="mb-0 small text-muted">URL pengujian</p>
+                    <h3 class="mb-0 fw-bold text-truncate"><a href="#" target="_blank"
+                            id="iden_url">&bull;&bull;&bull;</a> <i class="small fas fa-external-link-alt"></i>
+                    </h3>
+                </div>
+                <hr />
+                <!-- Interval pengecekan -->
+                <div>
+                    <p class="mb-0 small text-muted">Interval pengecekan</p>
+                    <h3 class="mb-0 fw-normal text-truncate">Setiap <strong
+                            id="iden_interval">&bull;&bull;&bull;</strong> detik</h3>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <div class="alert alert-primary" role="alert">
+                    <h5 class="alert-heading">Informasi</h5>
+                    <p>Data yang dicatat antara lain <strong>waktu respons</strong> dan <strong>waktu
+                            pengujian</strong>.</p>
+                    <p class="mb-0">SLA dipengaruhi oleh waktu respons. Apabila waktu respons lebih dari 1 detik atau
+                        tidak ada respons dari server setelah 4 detik, maka SLA akan berkurang.</p>
+                </div>
+            </div>
+            <div class="col-12 mb-3">
+                <hr />
+            </div>
+            <form class="col-md-8 col-lg-4 col-xl-3 mb-4" mtehod="GET">
+                <label for="tanggal" class="mb-2">Tanggal</label>
+                <div class="d-flex">
+                    <div class="me-2">
+                        <input type="date" name="date" id="tanggal" class="form-control" min="2022-10-11">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tampilkan</button>
+                    <input type="hidden" name="id" value="1">
+                </div>
+            </form>
+        </div>
+
+
+        <!-- <pre id="json"></pre> -->
+
+        <div class="chart-master-container">
+            <div class="card card-body mb-3">
+                <h5 class="mb-0">Grafik Keseluruhan</h5>
+            </div>
+            <div class="chart-container">
+                <canvas id="chart" class="chart"></canvas>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-6 mb-4">
+                <div class="chart-master-container">
+                    <div class="card card-body mb-3 d-flex align-items-center justify-content-between flex-row">
+                        <h5 class="mb-0">Persentase SLA Terpenuhi</h5>
+                        <span class="py-1 px-2 rounded" id="avg-sla">&bull;&bull;&bull;</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-sla" class="chart"></canvas>
+                    </div>
+                    <div class="text-center mt-2 small">
+                        <p class="mb-0">Arti warna pada kanan atas kartu ini:</p>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-success"> </span> SLA 98% - 100%&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-warning"> </span> SLA 94% - 97%&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-danger"> </span> SLA 0% - 93%&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="chart-master-container">
+                    <div class="card card-body mb-3 d-flex align-items-center justify-content-between flex-row">
+                        <h5 class="mb-0">Waktu Respons Rata-rata</h5>
+                        <span class="py-1 px-2 rounded" id="avg-resp">&bull;&bull;&bull;</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-resp" class="chart"></canvas>
+                    </div>
+                    <div class="text-center mt-2 small">
+                        <p class="mb-0">Arti warna pada kanan atas kartu ini:</p>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-success"> </span> Waktu respons &lt;
+                            1.000ms&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-warning"> </span> Waktu respons &gt;=
+                            1.000ms&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="chart-master-container">
+                    <div class="card card-body mb-3 d-flex align-items-center justify-content-between flex-row">
+                        <h5 class="mb-0">Jumlah Error/Timeout</h5>
+                        <span class="py-1 px-2 rounded" id="avg-down">&bull;&bull;&bull;</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-down" class="chart"></canvas>
+                    </div>
+                    <div class="text-center mt-2 small">
+                        <p class="mb-0">Arti warna pada kanan atas kartu ini:</p>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-success"> </span> &lt; 0,5 per 10
+                            menit&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-warning"> </span> 0,5 &ndash; 1,0 per 10
+                            menit&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-danger"> </span> &gt; 1,0 per 10
+                            menit&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="chart-master-container">
+                    <div class="card card-body mb-3 d-flex align-items-center justify-content-between flex-row">
+                        <h5 class="mb-0">Jumlah Sample</h5>
+                        <span class="py-1 px-2 rounded" id="avg-samples">&bull;&bull;&bull;</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-samples" class="chart"></canvas>
+                    </div>
+                    <div class="text-center mt-2 small">
+                        <p class="mb-0">Arti warna pada kanan atas kartu ini:</p>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-success"> </span> &gt; <span
+                                id="legend-sample-a1">?</span> per 10 menit&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-warning"> </span> <span
+                                id="legend-sample-b1">?</span> &ndash; <span id="legend-sample-b2">?</span> per 10
+                            menit&nbsp;</span>
+                        <span class="text-nowrap">&nbsp;<span class="badge bg-danger"> </span> &lt; <span
+                                id="legend-sample-c1">?</span> per 10 menit&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-body mb-3 mt-5">
+            <h5 class="mb-0">Tabel Data</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="table-data">
+                <thead class="table-success ">
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Jumlah Sampel</th>
+                        <th>Waktu Respons Rata-rata</th>
+                        <th>Jumlah Down</th>
+                        <th>SLA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- No data -->
+                    <tr>
+                        <td colspan="5" class="text-center">Belum ada data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <!-- chartjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="./assets/js/sla-monitor.js?rev=2023042601"></script>
+    <script>
+        async function main() {
+            let data = await getData();
+
+            if (data.success) {
+                displayData(data.data, data.meta);
+
+                // hide loader using fade out in plain JS
+                document.getElementById("loader").style.opacity = 0;
+                setTimeout(() => {
+                    document.getElementById("loader").style.display = "none";
+                }, 500);
+            } else {
+                console.log(data);
+                let confirmReload = confirm("Gagal memuat data. Coba lagi?");
+                if (confirmReload) {
+                    location.reload();
+                }
+            }
+
+        }
+        main();
+    </script>
+</body>
+
+</html>
