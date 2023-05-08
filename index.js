@@ -519,8 +519,6 @@ client.on("messageCreate", async (msg) => {
   srv.keepAlive();
 })();
 
-console.log("\x1b[36m%s\x1b[0m", "[Discord] Loading main bot...")
-
 client.login(process.env['TOKEN']).then().catch(reason => {
   console.log("Login failed: " + reason);
 });

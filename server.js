@@ -13,13 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 // Parse JSON bodies (as sent by API clients)
 app.use(express.json());
 
-app.post("/", (req, res) => {
-  console.log(req.body);
-  res.send("All OK! Sending!");
-})
-
 app.get("/", (req, res) => {
-  https.get('https://jbotextra.jollyfrankle.repl.co/', res2 => {
+  https.get('https://jbotextra.jollyfrankle.repl.co/', (res2) => {
 
   }).on('error', err => {
     console.log('Error: ', err.message);
@@ -51,18 +46,12 @@ app.post("/update_status", async (req, res) => {
 
     // Set lagu:
     dcBot.client.user.setActivity(truncate(qStr.title, 96), {
-      type: ActivityType.Listening
-    });
-    dcBot.client.user.setPresence({
-      status: 'dnd'
+      type: ActivityType.Custom
     });
 
     containerActivity = setTimeout(async () => {
       // remove activity
       dcBot.client.user.setActivity(null);
-      dcBot.client.user.setPresence({
-        status: 'online'
-      });
     }, Number(qStr.dur) + 5000); // + toleransi 5 detik setelah lagu berakhir
 
     console.log(qStr);

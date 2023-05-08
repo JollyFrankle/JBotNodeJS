@@ -4,6 +4,13 @@ export const Format = {
   TIME: 2
 }
 
+
+export function currentLocalDate() {
+  let date = new Date();
+  date.setHours(date.getHours() + 7);
+  return date;
+}
+
 export function sqlDate(dateObj = new Date(), format = Format.DATETIME) {
   let isoDate = dateObj.toISOString().match(/(\d{4}\-\d{2}\-\d{2})T(\d{2}:\d{2}:\d{2})/)
   if(format == Format.DATETIME) {

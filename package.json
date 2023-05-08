@@ -17,6 +17,7 @@
     "@replit/database": "^2.0.1",
     "axios": "^0.26.1",
     "discord.js": "^14.8.0",
+    "dotenv": "^16.0.3",
     "express": "^4.17.3",
     "ffmpeg-static": "^4.4.1",
     "firebase": "^9.21.0",
