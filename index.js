@@ -1,5 +1,3 @@
-// import { Client, GatewayIntentBits, ActivityType, Events } from 'discord.js';
-// import axios from 'axios';
 import db from './helpers/database.js';
 
 import { client, clientDev, sendMessage, restartContainer } from './helpers/bot.js';
