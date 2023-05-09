@@ -146,7 +146,7 @@ function tw_send_adv(data) {
     // })
 
     // set image:
-    for (i in data.media) {
+    for (let i in data.media) {
       if (data.media[i].type == 'photo') {
         image = {
           url: data.media[i].media_url_https
