@@ -133,7 +133,7 @@ export default {
 
     } else if (subcommand == "contime") {
       const { checkConnectionTime } = await import('../helpers/resolve-time.js')
-      const { dateFormatIndo } = await import('../helpers/date.js')
+      const { dateFormatIndo } = await import('../helpers/utils.js')
       let count = interaction.options.getInteger("count")
       count = (count<1 || count>10) ? 3 : count;
       let url = interaction.options.getString("url")
@@ -167,7 +167,7 @@ export default {
 
       // Response time every pings
       let response = arrTimes.map(r => {
-        let text = `${dateFormatIndo(r.time)}: ${r.duration}`
+        let text = `${dateFormatIndo(new Date(r.time))}: ${r.duration}`
         if(r.error) {
           text += `\n**[E]**: ${r.error}`
         }

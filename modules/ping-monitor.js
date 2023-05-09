@@ -1,9 +1,9 @@
 // import Database from '@replit/database';
 import db from '../helpers/database.js';
 import * as mysql from './mysql2.js';
-import { sqlDate, dateFormatIndo } from '../helpers/date.js';
+import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
 import { getURL } from '../server.js';
-import { sendMsg, client as dcClient } from '../index.js';
+import { sendMsg } from '../index.js';
 
 // const db = new Database()
 

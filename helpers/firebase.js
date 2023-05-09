@@ -23,7 +23,3 @@ const app = initializeApp(firebaseConfig);
 //tambahkan code untuk menginisialisasikan Realtime Database
 //dan mendapatkan referensi ke database tersebut
 export const db = getDatabase(app);
-
-console.log(
-  (await import("./date.js")).currentLocalDate().toISOString()
-);

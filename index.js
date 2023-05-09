@@ -9,13 +9,7 @@ import * as dcRRI from './modules/rrikupang.js';
 import * as monitor from './modules/ping-monitor.js';
 import { query } from './modules/mysql2.js';
 
-monitor.start()
-
-// const db = new Database();
-// db.delete("mySQL_TEMP_LOCK") // replit
-db.delete("mySQL_TEMP_LOCK")
-
-let _startTime = new Date().getTime()
+const _startTime = new Date().getTime()
 query("SELECT 1;").then((res) => {
   if(res.status == 200) {
     console.log("\x1b[36m%s\x1b[0m", "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
@@ -104,7 +98,9 @@ function splitToKeys(text, ins = ":") {
  */
 export {
   client,
-  sendMessage as sendMsg
+  clientDev,
+  sendMessage as sendMsg,
+  _startTime as boootupTime,
   // setRRI as resetRRI
 };
 
@@ -120,9 +116,16 @@ client.on("ready", async () => {
 });
 
 /*
- * Interaction create (i.e slash commands)
+ * Main functions
  */
 (async () => {
+  // Start ping monitor
+  monitor.start()
+
+  // Delete temporary MySQL lock
+  db.delete("mySQL_TEMP_LOCK")
+
+  // Deploy slash commands
   const slashComs = await import("./register-commands.js");
   slashComs.deployProd()
   slashComs.deployDev()

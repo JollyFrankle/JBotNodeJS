@@ -22,9 +22,15 @@ export async function _list() {
     return snapshot.val();
 }
 
+export async function _getAsLiveData(key) {
+    let refKey = ref(fbDb, key);
+    return refKey;
+}
+
 export default {
     set: _set,
     get: _get,
     delete: _deleteKey,
-    list: _list
+    list: _list,
+    getLD: _getAsLiveData
 }
