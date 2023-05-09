@@ -30,7 +30,7 @@ export function sqlDate(dateObj = new Date(), format = Format.DATETIME) {
  */
 export function dateFormatIndo(date) {
   // plus 7 hours
-  date.setHours(date.getHours() + 7);
+  // date.setHours(date.getHours() + 7);
 
   var monthNames = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
