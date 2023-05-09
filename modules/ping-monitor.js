@@ -3,7 +3,7 @@ import db from '../helpers/database.js';
 import * as mysql from './mysql2.js';
 import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
 import { getURL } from '../server.js';
-import { sendMsg } from '../index.js';
+import { sendMsg, client } from '../index.js';
 
 // const db = new Database()
 
@@ -271,7 +271,6 @@ async function onMonitorUp(dbData) {
 
         for (let i in msgInfo) {
           // FORMAT: [chId, msgId]
-          let client = dcclient;
           client.channels.cache.find(ch => ch.id == msgInfo[i][0]).messages.fetch(msgInfo[i][1]).then((msg) => {
             msg.delete();
           });
