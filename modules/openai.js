@@ -1,4 +1,4 @@
-import { getURL } from '../server.js';
+import { url } from '../server.js';
 // import axios from 'axios';
 import { query } from './mysql2.js';
 import { Configuration, OpenAIApi } from 'openai';
@@ -57,7 +57,7 @@ async function generateCompletion(prompt, id_user = null, id_channel = null, per
         timestamp: new Date(),
         footer: {
           text: "JollyBOT OpenAI Integration",
-          icon_url: getURL() + "/public/images/logo.jpg"
+          icon_url: `${url}/public/images/logo.jpg`
         },
       }]
     }
@@ -121,7 +121,7 @@ async function generateCompletion(prompt, id_user = null, id_channel = null, per
           timestamp: new Date(),
           footer: {
             text: "JollyBOT OpenAI Integration",
-            icon_url: getURL() + "/public/images/logo.jpg"
+            icon_url: `${url}/public/images/logo.jpg`
           },
         })
 
@@ -146,7 +146,7 @@ async function generateCompletion(prompt, id_user = null, id_channel = null, per
           timestamp: new Date(),
           footer: {
             text: "JollyBOT OpenAI Integration",
-            icon_url: getURL() + "/public/images/logo.jpg"
+            icon_url: `${url}/public/images/logo.jpg`
           },
         }]
       }
@@ -167,7 +167,7 @@ async function markAsDeleted(id_user = null, id_channel = null, personaInput = n
         timestamp: new Date(),
         footer: {
           text: "JollyBOT OpenAI Integration",
-          icon_url: getURL() + "/public/images/logo.jpg"
+          icon_url: `${url}/public/images/logo.jpg`
         }
       }]
     }
@@ -186,7 +186,7 @@ async function markAsDeleted(id_user = null, id_channel = null, personaInput = n
         timestamp: new Date(),
         footer: {
           text: "JollyBOT OpenAI Integration",
-          icon_url: getURL() + "/public/images/logo.jpg"
+          icon_url: `${url}/public/images/logo.jpg`
         },
       }]
     }

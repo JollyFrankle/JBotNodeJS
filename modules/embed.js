@@ -1,9 +1,9 @@
-import * as webServer from '../server.js';
+import { url } from '../server.js';
 
 function createEmbed(
   color = 0x0099ff,
   title = "Title card ini",
-  url = "https://v3.himaforka-uajy.org/",
+  urlDest = "https://v3.himaforka-uajy.org/",
   desc = "Deskripsi card ini",
   thumbnail = "https://ifest.uajy.ac.id/assets/images/branding/ev-me.png",
   fields = [],
@@ -18,19 +18,20 @@ function createEmbed(
   if(displayAuthor === true) {
     author = {
       name: "JollyBOT automated",
-      icon_url: webServer.getURL() + "/public/images/logo.jpg",
+      icon_url: `${url}/public/images/logo.jpg`,
       url: null
     }
   }
 
-  // replace semua {WEBSERVER_URL} dengan `webServer.getURL()`
-  url = url === null ? null : url.replace("{WEBSERVER_URL}", webServer.getURL());
-  image = image === null ? null : image.replace("{WEBSERVER_URL}", webServer.getURL());
-  thumbnail = thumbnail === null ? null : thumbnail.replace("{WEBSERVER_URL}", webServer.getURL());
+  // replace semua {WEBSERVER_URL} dengan `url`
+  urlDest = urlDest === null ? null : urlDest.replace("{WEBSERVER_URL}", url);
+  image = image === null ? null : image.replace("{WEBSERVER_URL}", url);
+  thumbnail = thumbnail === null ? null : thumbnail.replace("{WEBSERVER_URL}", url);
+
   return {
     color: color,
     title: title,
-    url: url,
+    url: urlDest,
     author: author,
     description: desc,
     thumbnail: {
@@ -56,6 +57,7 @@ function genEmbedFromQ(data) {
     if (!data.title || !data.desc) {
       return "ERR: Field title dan/atau desc tidak ada!";
     }
+
     let embed = createEmbed(
       Number(rNoIU(data.color)),
       data.title,
@@ -66,6 +68,7 @@ function genEmbedFromQ(data) {
       rNoIU(data.image),
       rNoIU(data.footer)
     );
+
     console.log(new Date().toUTCString() + ": Embed Generation [OK]")
     return embed;
   } while (0);

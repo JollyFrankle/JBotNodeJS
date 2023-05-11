@@ -1,4 +1,4 @@
-import { getURL } from '../server.js';
+import { url } from '../server.js';
 import * as dcBot from '../index.js';
 
 let tg_template = {
@@ -74,7 +74,7 @@ function tg_send(data) {
         url: null,
         author: {
           name: "Informatika UAJY",
-          icon_url: getURL() + "/public/images/logo-himaforka.png",
+          icon_url: `${url}/public/images/logo-himaforka.png`,
           url: "https://t.me/+xvykVhBxecliOTg1"
         },
         description: tg_content.text,
@@ -83,7 +83,7 @@ function tg_send(data) {
         timestamp: new Date(),
         footer: {
           text: "JollyBOT Telegram Integration",
-          icon_url: getURL() + "/public/images/logo.jpg"
+          icon_url: `${url}/public/images/logo.jpg`
         }
       }
 
@@ -169,8 +169,8 @@ function tw_send_adv(data) {
     url: null,
     author: {
       name: "Fakultas Teknologi Industri UAJY",
-      icon_url: getURL() + "/public/images/logo-fti.jpg",
-      url: "https://twitter.com/" + data.user
+      icon_url: `${url}/public/images/logo-fti.jpg`,
+      url: `https://twitter.com/${data.user}`
     },
     description: data.text,
     fields: fields,
@@ -178,7 +178,7 @@ function tw_send_adv(data) {
     timestamp: new Date(data.date),
     footer: {
       text: "JollyBOT Twitter Integration",
-      icon_url: getURL() + "/public/images/logo.jpg"
+      icon_url: `${url}/public/images/logo.jpg`
     }
   }
 

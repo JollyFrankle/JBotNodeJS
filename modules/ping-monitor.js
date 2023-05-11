@@ -1,27 +1,19 @@
-// import Database from '@replit/database';
 import db from '../helpers/database.js';
 import * as mysql from './mysql2.js';
 import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
-import { getURL } from '../server.js';
+import { url } from '../server.js';
 import { sendMsg, client } from '../index.js';
-
-// const db = new Database()
 
 import Monitor from 'ping-monitor';
 
-const FAILURE_THRES = 4;
+const FAILURE_THRES = 3;
 const CONFIG = [];
-
 
 function getConfig() {
   return CONFIG.map(c => ({
     config: c.config,
     httpOptions: c.httpOptions
   }))
-}
-
-function checkNull(input) {
-  return input === null || typeof (input) === "undefined";
 }
 
 function checkChannel(ch_in) {
@@ -73,29 +65,6 @@ function checkChannel(ch_in) {
   return ch_allowed;
 }
 
-// function dateFormatIndo(date) {
-//   // set time zone to Asia/Jakarta
-//   let newDate = new Date(date);
-//   newDate.setHours(newDate.getHours() + 7);
-
-//   var monthNames = [
-//     "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-//   ];
-
-//   var day = newDate.getDate();
-//   var monthIndex = newDate.getMonth();
-//   var year = newDate.getFullYear();
-//   // hours, minutes, seconds --> harus 2 digit
-//   var hours = newDate.getHours().toString().padStart(2, '0');
-//   var minutes = newDate.getMinutes().toString().padStart(2, '0');
-//   var seconds = newDate.getSeconds().toString().padStart(2, '0');
-
-//   // 3 karakter pertama dari nama bulan
-//   let monthShort = monthNames[monthIndex].substring(0, 3);
-
-//   return day + ' ' + monthShort + ' ' + year + ', pkl. ' + hours + '.' + minutes + '.' + seconds + ' WIB';
-// }
-
 function timeDiff(start, end) {
   let diff = end - start;
   let hours = Math.floor(diff / 1000 / 60 / 60);
@@ -145,8 +114,6 @@ async function onMonitorError(dbData) {
     log.count++;
     if (log.count == FAILURE_THRES) {
       // sudah > 3 kali ping berhasil, hapus prev down time
-      let url = getURL();
-
       let embedSend = {
         title: dbData.nama + " sulit diakses saat ini",
         description: `Situs tidak dapat dijangkau dengan semestinya sejak **${dateFormatIndo(new Date(log.down_time))}**.`,
@@ -215,8 +182,6 @@ async function onMonitorUp(dbData) {
     log.count++;
     if (log.count == FAILURE_THRES && log.prev_down != 0) {
       // sudah > 3 kali ping berhasil, send web sudah up:
-      let url = getURL();
-
       let durasi = timeDiff(log.prev_down, log.up_time)
       let durasiTxtArr = []
       if (durasi[0] > 0) {

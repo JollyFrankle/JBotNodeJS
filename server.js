@@ -33,10 +33,10 @@ app.get("/", (_req, res) => {
     data: {
       uptime: process.uptime(),
       version: process.version,
-      up_since: `${new Date(dcBot.boootupTime).toLocaleString()} (${process.env.TZ})`,
+      up_since: `${new Date(dcBot.boootupTime)?.toLocaleString()} (${process.env.TZ})`,
       discord: {
-        up_since_main: `${dcBot.client.readyAt.toLocaleString()} (${process.env.TZ})`,
-        up_since_dev: `${dcBot.clientDev.readyAt.toLocaleString()} (${process.env.TZ})`,
+        up_since_main: `${dcBot.client.readyAt?.toLocaleString()} (${process.env.TZ})`,
+        up_since_dev: `${dcBot.clientDev.readyAt?.toLocaleString()} (${process.env.TZ})`,
       }
     }
   });
@@ -291,11 +291,4 @@ export function keepAlive() {
   app.listen(3000)
 }
 
-export function getURL() {
-  return "https://jbotnode.jollyfrankle.repl.co";
-}
-
-// export {
-//   keepAlive,
-//   getURL
-// };
+export const url = "https://jbotnode.jollyfrankle.repl.co";
