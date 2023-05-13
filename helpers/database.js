@@ -23,8 +23,12 @@ export async function _list() {
 }
 
 export async function _getAsLiveData(key) {
-    let refKey = ref(fbDb, key);
-    return refKey;
+    let snapshot = await get(ref(fbDb, key));
+    return snapshot;
+}
+
+export function _push(key, value) {
+    return push(ref(fbDb, key), value);
 }
 
 export default {
@@ -32,5 +36,6 @@ export default {
     get: _get,
     delete: _deleteKey,
     list: _list,
-    getLD: _getAsLiveData
+    getLD: _getAsLiveData,
+    push: _push
 }

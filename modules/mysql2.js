@@ -61,18 +61,14 @@ export async function query(sql, params = [], storeIfFailed = false) {
   } catch (e) {
     // add to temp db
     if(storeIfFailed) {
-      let tempDb = await db.get("mySQL_TEMP");
-      if(!tempDb || !Array.isArray(tempDb)) {
-        tempDb = [];
-      }
-      tempDb.push({
+      let data = {
         sql: sql,
         params: params,
         sif: storeIfFailed
-      });
-      await db.set("mySQL_TEMP", tempDb);
+      }
+      await db.push("mySQL_TEMP", data);
     }
-    // console.log(e);
+
     return {
       status: e.errno,
       error: e
@@ -83,36 +79,34 @@ export async function query(sql, params = [], storeIfFailed = false) {
   // console.log(fields) // `fields` itu tidak berguna di konteks ini
 }
 
+let LOCK = false;
 async function massQueryFromTempDb() {
-  if((await db.get("mySQL_TEMP_LOCK")) !== true) {
-    let tempDb = await db.get("mySQL_TEMP");
-    if(tempDb && Array.isArray(tempDb) && tempDb.length > 0) {
-      await db.set("mySQL_TEMP_LOCK", true)
-      try {
-        let con = await getConnection();
-        for(i in tempDb) {
-          try {
-            let data = tempDb[i];
-            let [rows, fields] = await con.execute(data.sql, data.params);
-            console.log("Redo SQL OK")
-            // Finally: hapus dari queue, entah querynya error atau tidak
-            tempDb.splice(i, 1);
-            db.set("mySQL_TEMP", tempDb).then(() => {});
-          } catch (e) {
-            console.log(e);
-          }
+  if(LOCK !== true) {
+    LOCK = true;
+    let tempDbSnap = await db.getLD("mySQL_TEMP")
+    if (tempDbSnap.exists()) {
+      const con = await getConnection();
+
+      tempDbSnap.forEach((snp) => {
+        console.log(snp.key)
+        let key = snp.key, val = snp.val();
+        try {
+          con.execute(val.sql, val.params).then(async () => {
+            console.log("Redo SQL OK for: " + key);
+            await db.delete(`mySQL_TEMP/${key}`);
+          });
+        } catch (e) {
+          console.log(e);
         }
-        con.end()
-        await db.delete("mySQL_TEMP_LOCK")
-        return {
-          status: 200
-        };
-      } catch (e) {
-        await db.delete("mySQL_TEMP_LOCK")
-        return {
-          status: 500
-        }
-      }
+      })
+
+      LOCK = false;
+    } else {
+      LOCK = false;
     }
+  }
+
+  return {
+    status: 200
   }
 }
