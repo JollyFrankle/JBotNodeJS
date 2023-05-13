@@ -82,16 +82,13 @@ export async function query(sql, params = [], storeIfFailed = false) {
 let LOCK = false;
 async function massQueryFromTempDb() {
   if(LOCK !== true) {
-    LOCK = true;
     let tempDbSnap = await db.getLD("mySQL_TEMP")
-    if (tempDbSnap.exists()) {
-      const con = await getConnection();
-
+    if (tempDbSnap.exists() && LOCK !== true) {
+      LOCK = true;
       tempDbSnap.forEach((snp) => {
-        console.log(snp.key)
         let key = snp.key, val = snp.val();
         try {
-          con.execute(val.sql, val.params).then(async () => {
+          query(val.sql, val.params, val.sif).then(async () => {
             console.log("Redo SQL OK for: " + key);
             await db.delete(`mySQL_TEMP/${key}`);
           });
