@@ -307,7 +307,7 @@ function autoAdjustCT() {
 // [NEW] StartMonitor (using external db)
 async function startMonitor() {
   let result = await mysql.query("SELECT * FROM pm_host;");
-  let list = result.data;
+  let list = result.data || [];
 
   // Setup monitor
   for (let dbData of list) {

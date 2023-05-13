@@ -11,6 +11,22 @@ const mysql_config = {
   database: process.env['MYSQL_DB']
 }
 
+/**
+ * @type {mysql.Connection}
+ */
+let con = null;
+async function getConnection() {
+  if(con === null) {
+    con = await mysql.createConnection(mysql_config);
+  }
+  await con.ping(async (err) => {
+    if(err) {
+      con = await mysql.createConnection(mysql_config);
+    }
+  })
+  return con;
+}
+
 // thanks chatgpt for the documentation below
 /**
  * Executes an SQL query with optional parameters and returns a JSON object with the query results or an error message if the query fails.
@@ -35,9 +51,8 @@ const mysql_config = {
  */
 export async function query(sql, params = [], storeIfFailed = false) {
   try {
-    let con = await mysql.createConnection(mysql_config);
+    let con = await getConnection();
     let [rows, fields] = await con.execute(sql, params);
-    con.end();
     massQueryFromTempDb();
     return {
       status: 200,
@@ -74,7 +89,7 @@ async function massQueryFromTempDb() {
     if(tempDb && Array.isArray(tempDb) && tempDb.length > 0) {
       await db.set("mySQL_TEMP_LOCK", true)
       try {
-        let con = await mysql.createConnection(mysql_config);
+        let con = await getConnection();
         for(i in tempDb) {
           try {
             let data = tempDb[i];

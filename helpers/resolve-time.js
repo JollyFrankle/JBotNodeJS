@@ -10,11 +10,15 @@ export function checkConnectionTime(url) {
     };
 
     function getConnTime() {
-      // connection time = firstByteAt - startAt
-      let connEst = timings.tlsHandshakeAt || timings.tcpConnectionAt;
-      let connectionTime = (connEst[0] - timings.startAt[0]) * 1e3;
-      connectionTime += (connEst[1] - timings.startAt[1]) / 1e6;
-      return connectionTime;
+      try {
+        // connection time = firstByteAt - startAt
+        let connEst = timings.tlsHandshakeAt || timings.tcpConnectionAt;
+        let connectionTime = (connEst[0] - timings.startAt[0]) * 1e3;
+        connectionTime += (connEst[1] - timings.startAt[1]) / 1e6;
+        return connectionTime;
+      } catch(e) {
+        return null;
+      }
     }
 
     let urlWithoutHttp = url.replace('http://', '').replace('https://', '');
@@ -33,9 +37,9 @@ export function checkConnectionTime(url) {
       res.once('readable', function() {
         timings.firstByteAt = process.hrtime();
       });
-      res.on('data', function(chunk) {
-        // responseBody += chunk;
-      });
+      // res.on('data', function(chunk) {
+      //   // responseBody += chunk;
+      // });
       res.on('end', function() {
         timings.endAt = process.hrtime();
         let connectionTime = getConnTime();
@@ -74,7 +78,7 @@ async function checkWebsite(url) {
   try {
     for (let i = 0; i <= 3; i++) {
       let connectionTime = await checkConnectionTime(url);
-      if (i > 0) {
+      if (i > 0 && connectionTime != null) {
         connTimes.push(connectionTime);
       }
     }
