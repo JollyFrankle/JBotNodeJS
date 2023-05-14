@@ -8,6 +8,7 @@ import Monitor from 'ping-monitor';
 
 const FAILURE_THRES = 3;
 const CONFIG = [];
+let isStarted = false;
 
 function getConfig() {
   return CONFIG.map(c => ({
@@ -306,6 +307,11 @@ function autoAdjustCT() {
 
 // [NEW] StartMonitor (using external db)
 async function startMonitor() {
+  if (isStarted) {
+    console.log("Monitor already started");
+    throw new Error("Monitor already started");
+  }
+
   let result = await mysql.query("SELECT * FROM pm_host;");
   let list = result.data || [];
 
@@ -379,6 +385,11 @@ async function startMonitor() {
     monitor.on("down", (_, __) => {
       onMonitorError(dbData);
     });
+  }
+
+  return {
+    status: "success",
+    message: "Monitor started"
   }
 }
 
