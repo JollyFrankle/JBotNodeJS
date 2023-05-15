@@ -315,6 +315,10 @@ async function startMonitor() {
   let result = await mysql.query("SELECT * FROM pm_host;");
   let list = result.data || [];
 
+  if (list.length > 0) {
+    isStarted = true;
+  }
+
   // Setup monitor
   for (let dbData of list) {
     let channels = JSON.parse(dbData.channels)
@@ -407,19 +411,9 @@ async function removeChannel(pmId, channelId) {
 
 
 
-function getCurrentState() {
-  return data;
-}
-
-async function getDbState() {
-  return await db.get("down_monitor");
-}
-
 export {
   startMonitor as start,
   addChannel as addCh,
   removeChannel as removeCh,
-  getCurrentState,
-  getDbState,
   getConfig
 };

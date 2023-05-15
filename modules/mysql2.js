@@ -1,7 +1,8 @@
 import mysql from 'mysql2/promise';
 // import Database from '@replit/database';
 // (await import('dotenv')).config();
-import db from '../helpers/database.js';
+import db from '../helpers/database.js'; // load .ev from here
+import fs from 'fs';
 // const db = new Database()
 
 const mysql_config = {
@@ -10,6 +11,8 @@ const mysql_config = {
   password: process.env['MYSQL_PW'],
   database: process.env['MYSQL_DB']
 }
+
+const tempdb = "./storage/tempdb.log";
 
 /**
  * @type {mysql.Connection}
@@ -50,60 +53,79 @@ async function getConnection() {
  * }
  */
 export async function query(sql, params = [], storeIfFailed = false) {
+  let con;
+  let returnData = null;
+
   try {
-    let con = await getConnection();
-    let [rows, fields] = await con.execute(sql, params);
-    massQueryFromTempDb();
-    return {
+    con = await getConnection();
+    let [rows, _] = await con.execute(sql, params);
+    returnData = {
       status: 200,
       data: rows
-    };
+    }
   } catch (e) {
     // add to temp db
     if(storeIfFailed) {
-      let data = {
+      insertToTempDb({
         sql: sql,
         params: params,
         sif: storeIfFailed
-      }
-      await db.push("mySQL_TEMP", data);
+      })
     }
 
-    return {
+    console.log(e)
+
+    returnData = {
       status: e.errno,
       error: e
     }
+  } finally {
+    // Mass query from temp db
+    massQueryFromTempDb();
   }
 
-  // console.log(rows)
-  // console.log(fields) // `fields` itu tidak berguna di konteks ini
+  return returnData;
 }
 
 let LOCK = false;
 async function massQueryFromTempDb() {
   if(LOCK !== true) {
-    let tempDbSnap = await db.getLD("mySQL_TEMP")
-    if (tempDbSnap.exists() && LOCK !== true) {
-      LOCK = true;
-      tempDbSnap.forEach((snp) => {
-        let key = snp.key, val = snp.val();
-        try {
-          query(val.sql, val.params, val.sif).then(async () => {
-            console.log("Redo SQL OK for: " + key);
-            await db.delete(`mySQL_TEMP/${key}`);
-          });
-        } catch (e) {
-          console.log(e);
-        }
-      })
+    const readline = await import('readline');
+    const fileStream = fs.createReadStream(tempdb);
 
-      LOCK = false;
-    } else {
-      LOCK = false;
+    const rl = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity
+    });
+
+    // if there is a line, do the query
+    for await (let line of rl) {
+      LOCK = true;
+      try {
+        let value = JSON.parse(line);
+        await query(value[0], value[1], value[2]).then(async () => {
+          console.log("Redo SQL OK for: " + line);
+          // delete the line
+          let data = fs.readFileSync(tempdb, 'utf8').split('\n');
+          data.splice(data.indexOf(line), 1);
+          fs.writeFileSync(tempdb, data.join('\n'));
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
+    LOCK = false;
   }
 
   return {
     status: 200
   }
+}
+
+async function insertToTempDb({ sql, params, sif }) {
+  fs.appendFile(tempdb, JSON.stringify([sql, params, sif]) + '\n', (err) => {
+    if(err) {
+      console.log(err);
+    }
+  })
 }

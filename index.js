@@ -5,7 +5,7 @@ import { client, clientDev, sendMessage, restartContainer } from './helpers/bot.
 import * as dcEmbed from './modules/embed.js';
 import * as dcCal from './modules/calendar.js';
 // import * as dcNotify from './modules/notify.js';
-import * as dcRRI from './modules/rrikupang.js';
+// import * as dcRRI from './modules/rrikupang.js';
 import * as monitor from './modules/ping-monitor.js';
 import { query } from './modules/mysql2.js';
 
@@ -13,6 +13,9 @@ const _startTime = new Date().getTime()
 query("SELECT 1;").then((res) => {
   if(res.status == 200) {
     console.log("\x1b[36m%s\x1b[0m", "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
+
+    // Start ping monitor
+    monitor.start()
   } else {
     console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL]\r\n" + res.error)
   }
@@ -119,9 +122,6 @@ client.on("ready", async () => {
  * Main functions
  */
 (async () => {
-  // Start ping monitor
-  monitor.start()
-
   // Delete temporary MySQL lock
   db.delete("mySQL_TEMP_LOCK")
 
@@ -172,11 +172,6 @@ client.on("messageCreate", async (msg) => {
         msg.channel.send("Berhasil! Cek ulang semua isi DB dengan cara `!jb debug db`!");
         console.log(tempDb)
         await db.set("mySQL_TEMP", tempDb)
-        break;
-      case "monitor":
-        let currSt = monitor.getCurrentState(), currDb = await monitor.getDbState();
-        msg.channel.send("Non-DB state:\r\n```json\r\n" + JSON.stringify(currSt, null, "  ") + "\r\n```");
-        msg.channel.send("DB state:\r\n```json\r\n" + JSON.stringify(currDb, null, "  ") + "\r\n```");
         break;
       case "db":
         const fs = await import('fs');
@@ -446,7 +441,7 @@ client.on("messageCreate", async (msg) => {
 
       let cId = client.channels.cache.find(n => n.name == msgKeys["channel"] && n.guildId == gId.id);
       if (!cId)
-        return msg.reply("Channel tidak ditemukan!");
+        return msg.reply("Channel tidak ditemukan!");f
 
       targetChannel = cId.id;
       targetGuild = gId.id;

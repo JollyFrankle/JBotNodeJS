@@ -15,6 +15,7 @@
     "@discordjs/voice": "^0.8.0",
     "@firebase/database": "^0.14.4",
     "@replit/database": "^2.0.1",
+    "ansi-to-html": "^0.7.2",
     "axios": "^0.26.1",
     "discord.js": "^14.8.0",
     "dotenv": "^16.0.3",

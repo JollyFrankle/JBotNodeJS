@@ -4,6 +4,7 @@ import { query } from './modules/mysql2.js';
 import { ActivityType } from 'discord.js';
 import { truncate } from './helpers/utils.js';
 import * as dcBot from './index.js';
+import * as utils from './helpers/utils.js';
 
 const app = express()
 
@@ -37,6 +38,12 @@ app.get("/", (_req, res) => {
       discord: {
         up_since_main: `${dcBot.client.readyAt?.toLocaleString()} (${process.env.TZ})`,
         up_since_dev: `${dcBot.clientDev.readyAt?.toLocaleString()} (${process.env.TZ})`,
+      },
+      memory: {
+        rss: process.memoryUsage().rss,
+        heapTotal: process.memoryUsage().heapTotal,
+        heapUsed: process.memoryUsage().heapUsed,
+        external: process.memoryUsage().external
       }
     }
   });
@@ -255,16 +262,22 @@ SUM(IF(resp_time IS NULL, 1, 0)) AS down_count,
 ((COUNT(id)-SUM(IF(resp_time IS NULL OR resp_time > ?, 1, 0))) / COUNT(id)) * 100 AS sla
 FROM pm_results
 WHERE id_host = ?
-AND LEFT(ADDTIME(timestamp, '07:00:00'), 10) = ?
-GROUP BY CONCAT(LEFT(DATE_FORMAT(DATE_ADD(timestamp, INTERVAL '0 7' DAY_HOUR), '%Y-%m-%d %H:%i'), 15), '0'); `;
+AND (timestamp BETWEEN ? AND ?)
+GROUP BY time; `;
 
   // API Key Check OK
   if (!new Date(qStr.tanggal)) {
     qStr.tanggal = new Date().toISOString().slice(0, 10);
   }
-  var result = await query(sql, [detail_host.sla_tolerance_ms, qStr.id_host, qStr.tanggal])
+
+  let ts1 = new Date(new Date(qStr.tanggal).getTime() - (7 * 3600 * 1000));
+  let ts2 = new Date(ts1.getTime() + 86400000);
+
+  // console.log("ts1: " + utils.sqlDate(ts1) + ", ts2: " + utils.sqlDate(ts2));
+
+  var result = await query(sql, [detail_host.sla_tolerance_ms, qStr.id_host, utils.sqlDate(ts1), utils.sqlDate(ts2)])
   if (result.status == 200) {
-    res.send({
+    return res.send({
       success: true,
       data: result.data,
       meta: {
@@ -272,12 +285,66 @@ GROUP BY CONCAT(LEFT(DATE_FORMAT(DATE_ADD(timestamp, INTERVAL '0 7' DAY_HOUR), '
         detail_host: detail_host
       }
     })
-  } else {
-    res.send({
-      "error": result.error
-    })
   }
+
+  return res.status(500).send({
+    "error": result.error
+  })
 })
+
+/**
+ * View terminal output
+ */
+app.get("/terminal", async (req, res) => {
+  if(req.query.token !== process.env['AUTH_TOKEN']) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  let file = "./storage/output.log";
+
+  const Convert = (await import("ansi-to-html")).default;
+  const fs = await import("fs");
+  const convert = new Convert();
+
+  // read file every line
+  let lines = fs.readFileSync(file, "utf8").split("\n");
+  let htmlOutput = "";
+  for(let line of lines) {
+    htmlOutput += convert.toHtml(line) + "\n";
+  }
+
+  return res.send(`
+  <head>
+    <title>JBot Node Terminal</title>
+  </head>
+  <body style="background-color: #000000; color: #d3d7cf">
+    <pre>${htmlOutput}</pre>
+  </body>`);
+})
+
+// app.get("/convert", async (req, res) => {
+//   let file = "./public/storage/tempdb2.log";
+
+//   const fs = await import("fs");
+//   fs.readFile(file, "utf8", (err, data) => {
+//     if (err) {
+//       return res.send(err);
+//     }
+
+//     let json = JSON.parse(data);
+//     let file2 = "./public/storage/tempdb.log";
+
+//     // let dataToWrite =
+//     for(let i in json) {
+//       let item = json[i];
+//       let dataTW  = [ item.sql, item.params, item.sif ]
+//       fs.appendFileSync(file2, JSON.stringify(dataTW) + "\n");
+//       console.log("OK for " + dataTW)
+//     }
+
+//     return res.send("OK");
+//   })
+// })
 
 /**
  * Static route: `public` folder
@@ -288,7 +355,8 @@ app.use("/public", express.static("public"));
  * Exported functions
  */
 export function keepAlive() {
-  app.listen(3000)
+  let port = process.env.PORT || 3000;
+  app.listen(port);
 }
 
 export const url = "https://jbotnode.jollyfrankle.repl.co";

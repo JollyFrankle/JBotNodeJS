@@ -7,7 +7,9 @@ export const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent
-  ], fetchAllMembers: true
+  ],
+  fetchAllMembers: true,
+  autoReconnect: true,
 });
 
 export const clientDev = new Client({
@@ -17,7 +19,9 @@ export const clientDev = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent
-  ], fetchAllMembers: true
+  ],
+  fetchAllMembers: true,
+  autoReconnect: true,
 });
 
 /**
@@ -89,9 +93,6 @@ export async function sendMessage(msgText, list) {
   return sentMsgs;
 }
 
-export async function restartContainer() {
-  // hit a 429, kill 1
-  console.log("Hit a 429!")
-  const { exec } = await import("child_process");
-  exec("kill 1");
+export function restartContainer() {
+ console.log("\x1b[33m%s\x1b[0m", "[!] restartContainer triggered");
 }

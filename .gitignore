@@ -2,3 +2,4 @@
 .env
 .secret
 node_modules
+output.log
