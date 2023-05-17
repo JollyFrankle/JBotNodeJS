@@ -545,9 +545,7 @@ clientDev.login(process.env['TOKEN_DEV']).then(() => {
  */
 client
   .on("debug", (e, logs) => {
-    // console.log(new Date())
-    // console.log(":: Discord Bot DEBUG")
-    // console.log("\x1b[34m%s\x1b[0m\r\n", e)
+    // console.log("[dcC] \x1b[34m%s\x1b[0m", e)
     if (e.includes("Hit a 429 while executing a request.")) {
       // hit a 429, kill 1
       console.log("We've really hit a 429!")
@@ -558,4 +556,9 @@ client
     console.log(new Date())
     console.log(":: Discord Bot WARNING")
     console.log("\x1b[33m%s\x1b[0m\r\n", logs)
+  })
+  .on("error", (e, logs) => {
+    console.log(new Date())
+    console.log(":: Discord Bot ERROR")
+    console.log("\x1b[31m%s\x1b[0m\r\n", logs)
   })

@@ -93,6 +93,11 @@ export async function sendMessage(msgText, list) {
   return sentMsgs;
 }
 
+/**
+ * Restart container
+ * @returns {never}
+ */
 export function restartContainer() {
  console.log("\x1b[33m%s\x1b[0m", "[!] restartContainer triggered");
+ process.exit(1)
 }

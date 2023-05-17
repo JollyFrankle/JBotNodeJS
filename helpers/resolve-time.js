@@ -99,7 +99,8 @@ async function checkWebsite(url) {
 
 export async function resolveForYogyakarta() {
   let websites = [
-    'https://uad.ac.id/', // Yogyakarta
+    'https://undip.ac.id/', // Jakarta (Google)
+    'https://unpad.ac.id/', // Bandung
     'https://lib.ui.ac.id/', // Yogyakarta
     'https://uny.ac.id/', // Yogyakarta
     'https://itb.ac.id/', // Bandung

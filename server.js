@@ -39,12 +39,6 @@ app.get("/", (_req, res) => {
         up_since_main: `${dcBot.client.readyAt?.toLocaleString()} (${process.env.TZ})`,
         up_since_dev: `${dcBot.clientDev.readyAt?.toLocaleString()} (${process.env.TZ})`,
       },
-      memory: {
-        rss: process.memoryUsage().rss,
-        heapTotal: process.memoryUsage().heapTotal,
-        heapUsed: process.memoryUsage().heapUsed,
-        external: process.memoryUsage().external
-      }
     }
   });
 })

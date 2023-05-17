@@ -1,7 +1,6 @@
 import mysql from 'mysql2/promise';
 // import Database from '@replit/database';
 // (await import('dotenv')).config();
-import db from '../helpers/database.js'; // load .ev from here
 import fs from 'fs';
 // const db = new Database()
 
@@ -13,22 +12,6 @@ const mysql_config = {
 }
 
 const tempdb = "./storage/tempdb.log";
-
-// /**
-//  * @type {mysql.Connection}
-//  */
-// let con = null;
-// async function getConnection() {
-//   if(con === null) {
-//     con = await mysql.createConnection(mysql_config);
-//   }
-//   await con.ping(async (err) => {
-//     if(err) {
-//       con = await mysql.createConnection(mysql_config);
-//     }
-//   })
-//   return con;
-// }
 
 // thanks chatgpt for the documentation below
 /**
