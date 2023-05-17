@@ -14,21 +14,21 @@ const mysql_config = {
 
 const tempdb = "./storage/tempdb.log";
 
-/**
- * @type {mysql.Connection}
- */
-let con = null;
-async function getConnection() {
-  if(con === null) {
-    con = await mysql.createConnection(mysql_config);
-  }
-  await con.ping(async (err) => {
-    if(err) {
-      con = await mysql.createConnection(mysql_config);
-    }
-  })
-  return con;
-}
+// /**
+//  * @type {mysql.Connection}
+//  */
+// let con = null;
+// async function getConnection() {
+//   if(con === null) {
+//     con = await mysql.createConnection(mysql_config);
+//   }
+//   await con.ping(async (err) => {
+//     if(err) {
+//       con = await mysql.createConnection(mysql_config);
+//     }
+//   })
+//   return con;
+// }
 
 // thanks chatgpt for the documentation below
 /**
@@ -53,11 +53,11 @@ async function getConnection() {
  * }
  */
 export async function query(sql, params = [], storeIfFailed = false) {
-  let con;
+  let con = null;
   let returnData = null;
 
   try {
-    con = await getConnection();
+    con = await mysql.createConnection(mysql_config);
     let [rows, _] = await con.execute(sql, params);
     returnData = {
       status: 200,
@@ -73,13 +73,16 @@ export async function query(sql, params = [], storeIfFailed = false) {
       })
     }
 
-    console.log(e)
+    console.error(e)
 
     returnData = {
       status: e.errno,
       error: e
     }
   } finally {
+    if(con !== null) {
+      con.end();
+    }
     // Mass query from temp db
     massQueryFromTempDb();
   }

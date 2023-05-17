@@ -10,16 +10,26 @@ import * as monitor from './modules/ping-monitor.js';
 import { query } from './modules/mysql2.js';
 
 const _startTime = new Date().getTime()
-query("SELECT 1;").then((res) => {
-  if(res.status == 200) {
-    console.log("\x1b[36m%s\x1b[0m", "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
 
-    // Start ping monitor
-    monitor.start()
-  } else {
-    console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL]\r\n" + res.error)
+let mysqlCheckCount = 0;
+async function checkMySql() {
+  if(mysqlCheckCount++ > 9) {
+    console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL] Aborting connection check, too many attempts.");
+    return;
   }
-})
+  query("SELECT 1;").then((res) => {
+    if(res.status == 200) {
+      console.log("\x1b[36m%s\x1b[0m", "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
+
+      // Start ping monitor
+      monitor.start()
+    } else {
+      console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL]\r\n" + res.error)
+      setTimeout(checkMySql, 5000)
+    }
+  })
+}
+checkMySql();
 
 process.on('uncaughtException', async (e) => {
   console.log(new Date());

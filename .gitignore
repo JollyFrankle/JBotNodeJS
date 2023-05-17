@@ -2,4 +2,5 @@
 .env
 .secret
 node_modules
-output.log
+storage
+message.json
