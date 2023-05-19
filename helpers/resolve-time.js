@@ -1,3 +1,5 @@
+import https from 'https';
+
 export function checkConnectionTime(url) {
   return new Promise(async (resolve, reject) => {
     var timings = {
@@ -9,7 +11,13 @@ export function checkConnectionTime(url) {
       endAt: undefined
     };
 
-    function getConnTime() {
+    /**
+     * Get connection time in milliseconds
+     * @param {import('http').ClientRequest|null} reqObj Request object
+     * @returns {number|null} Connection time in milliseconds
+     */
+    function getConnTime(reqObj) {
+      reqObj?.destroy(); // destroy the socket
       try {
         // connection time = firstByteAt - startAt
         let connEst = timings.tlsHandshakeAt || timings.tcpConnectionAt;
@@ -21,28 +29,21 @@ export function checkConnectionTime(url) {
       }
     }
 
-    let urlWithoutHttp = url.replace('http://', '').replace('https://', '');
-    let path = urlWithoutHttp.substring(urlWithoutHttp.indexOf('/'));
-    urlWithoutHttp = urlWithoutHttp.substring(0, urlWithoutHttp.indexOf('/'));
+    let urlAsURL = new URL(url);
+    let path = urlAsURL.pathname + urlAsURL.search;
 
-    let protocol = url.split(':')[0];
-    const http = await import(protocol);
-
-    let req = http.request({
-      hostname: urlWithoutHttp,
-      method: 'GET',
+    const req = https.request({
+      hostname: urlAsURL.hostname,
+      method: 'HEAD',
       path: path || '/',
       rejectUnauthorized: false,
     }, function(res) {
       res.once('readable', function() {
         timings.firstByteAt = process.hrtime();
       });
-      // res.on('data', function(chunk) {
-      //   // responseBody += chunk;
-      // });
       res.on('end', function() {
         timings.endAt = process.hrtime();
-        let connectionTime = getConnTime();
+        let connectionTime = getConnTime(null);
 
         resolve(connectionTime);
       });
@@ -54,22 +55,21 @@ export function checkConnectionTime(url) {
       socket.on('connect', function() {
         timings.tcpConnectionAt = process.hrtime();
         if (timings.tlsHandshakeAt && timings.tcpConnectionAt) {
-          resolve(getConnTime());
+          resolve(getConnTime(req));
         }
       });
       socket.on('secureConnect', function() {
         timings.tlsHandshakeAt = process.hrtime();
         if (timings.tlsHandshakeAt && timings.tcpConnectionAt) {
-          resolve(getConnTime());
+          resolve(getConnTime(req));
         }
       });
     });
 
     req.on('error', function(err) {
+      req?.destroy(); // destroy the socket
       reject(err);
     });
-
-    req.end();
   })
 }
 
@@ -88,7 +88,6 @@ async function checkWebsite(url) {
       average: Math.ceil(connTimes.reduce((a, b) => a + b, 0) / connTimes.length)
     }
   } catch (error) {
-    console.log(error);
     return {
       url,
       durations: [],

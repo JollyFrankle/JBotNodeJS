@@ -80,7 +80,7 @@ export default {
           "NodeJS": {
             "Uptime": process.uptime(),
             "Version": process.version,
-            "Boootup Time": boootupTime,
+            "Boootup Time": `${new Date(boootupTime)} (${process.env.TZ})`,
             "Memory Usage (MB)": (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
             "Discord": {
               "Main": {

@@ -258,6 +258,8 @@ function displayData(data, meta) {
   let avgResp = timeArr.filter(x => x.avg_resp_time != null).reduce((a, b) => a + b.avg_resp_time, 0) / timeArr.filter(x => x.avg_resp_time != null).length;
   let avgRespContainer = document.getElementById('avg-resp');
   if (avgResp > 1000) {
+    avgRespContainer.classList.add("text-bg-danger");
+  } else if (avgResp > 500) {
     avgRespContainer.classList.add("text-bg-warning");
   } else {
     avgRespContainer.classList.add("text-bg-success");
