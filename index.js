@@ -132,9 +132,6 @@ client.on("ready", async () => {
  * Main functions
  */
 (async () => {
-  // Delete temporary MySQL lock
-  db.delete("mySQL_TEMP_LOCK")
-
   // Deploy slash commands
   const slashComs = await import("./register-commands.js");
   slashComs.deployProd()
@@ -160,10 +157,6 @@ client.on("messageCreate", async (msg) => {
 
   if (mIns === "debug") {
     switch (mCon[2]) {
-      case "tempdb_clear":
-        await db.set("mySQL_TEMP", [])
-        msg.reply("Berhasil clear tempdb")
-        break;
       case "tempdb":
         let tempDb = await db.get("mySQL_TEMP");
         for(i in tempDb) {

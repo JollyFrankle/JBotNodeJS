@@ -2,6 +2,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 // import * as mysql from '../modules/mysql2.js';
 import { getConfig, start } from '../modules/ping-monitor.js';
 import { client, clientDev, restartContainer } from '../helpers/bot.js';
+import { boootupTime } from '../index.js';
 
 export default {
   isDev: true,
@@ -67,10 +68,7 @@ export default {
             "Heap Used": (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
             "External": (process.memoryUsage().external / 1024 / 1024).toFixed(2)
           },
-          "CPU": {
-            "Usage": process.cpuUsage(),
-            "Count": os.cpus().length
-          },
+          "CPU Usage (%)": (process.cpuUsage().user / 1000).toFixed(2),
           "OS": {
             "Platform": os.platform(),
             "Arch": os.arch(),
@@ -79,16 +77,22 @@ export default {
             "Total Memory (MB)": (os.totalmem() / 1024 / 1024).toFixed(2),
             "Free Memory (MB)": (os.freemem() / 1024 / 1024).toFixed(2)
           },
-          "Discord": {
-            "Main": {
-              "Ping": client.ws.ping,
-              "Uptime": client.uptime,
-              "Ready At": `${client.readyAt?.toLocaleString()} (${process.env.TZ})`,
-            },
-            "Dev": {
-              "Ping": clientDev.ws.ping,
-              "Uptime": clientDev.uptime,
-              "Ready At": `${clientDev.readyAt?.toLocaleString()} (${process.env.TZ})`,
+          "NodeJS": {
+            "Uptime": process.uptime(),
+            "Version": process.version,
+            "Boootup Time": boootupTime,
+            "Memory Usage (MB)": (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
+            "Discord": {
+              "Main": {
+                "Ping": client.ws.ping,
+                "Uptime": client.uptime,
+                "Ready At": `${client.readyAt?.toLocaleString()} (${process.env.TZ})`,
+              },
+              "Dev": {
+                "Ping": clientDev.ws.ping,
+                "Uptime": clientDev.uptime,
+                "Ready At": `${clientDev.readyAt?.toLocaleString()} (${process.env.TZ})`,
+              }
             }
           }
         }
