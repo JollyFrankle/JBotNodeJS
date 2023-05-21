@@ -1,10 +1,9 @@
 // Global variable:
 // Current date
-let currDate = new Date()
-currDate = currDate.getTime() + ((currDate.getTimezoneOffset() + (7 * 60)) * 1000)
-currDate = new Date(currDate)
-console.log(currDate)
-let isoDate = currDate.toISOString().match(/(\d{4}\-\d{2}\-\d{2})T(\d{2}:\d{2}:\d{2})/)
+let currDate = Date.now();
+let dateJkt = new Date(currDate + (7 * 60 * 60 * 1000))
+console.log(dateJkt)
+let isoDate = dateJkt.toISOString().match(/(\d{4}\-\d{2}\-\d{2})T(\d{2}:\d{2}:\d{2})/)
 
 // do POST request to get data
 const getData = async () => {

@@ -6,7 +6,7 @@ import { sendMsg, client } from '../index.js';
 
 import Monitor from 'ping-monitor';
 
-const FAILURE_THRES = 3;
+const FAILURE_THRES = 4;
 const CONFIG = [];
 let isStarted = false;
 
@@ -23,7 +23,7 @@ function checkChannel(ch_in) {
   let ch_list = ch_in;
   let ch_allowed = [];
 
-  let currentTime = new Date();
+  let currentTime = Date.now();
 
   for (let ch in ch_list) {
     const val = ch_list[ch];
@@ -35,7 +35,7 @@ function checkChannel(ch_in) {
       }
       if (typeof (val.attrs) !== "undefined" && val.attrs !== null) {
         if (typeof (val.attrs.muteUntil) !== "undefined" && val.attrs.muteUntil !== null) {
-          if (currentTime.getTime() < val.attrs.muteUntil * 1000) {
+          if (currentTime < val.attrs.muteUntil * 1000) {
             // Masih dalam waktu mute, skip channel ini
             continue;
           }
@@ -47,13 +47,13 @@ function checkChannel(ch_in) {
         start.setHours(sch[i][0].split(":")[0], sch[i][0].split(":")[1], 0);
         end.setHours(sch[i][1].split(":")[0], sch[i][1].split(":")[1], 0);
 
-        start.setTime(
-          start.getTime() - 7 * 60 * 60 * 1000 - start.getTimezoneOffset()
-        );
-        end.setTime(
-          end.getTime() - 7 * 60 * 60 * 1000 - end.getTimezoneOffset()
-        );
-        // +7 biar WIB
+        // start.setTime(
+        //   start.getTime() - 7 * 60 * 60 * 1000 - start.getTimezoneOffset()
+        // );
+        // end.setTime(
+        //   end.getTime() - 7 * 60 * 60 * 1000 - end.getTimezoneOffset()
+        // );
+        // +7 biar WIB --> sudah diatur TimeZone nya di server
 
         if (currentTime >= start && currentTime <= end) {
           ch_allowed.push(ch);
@@ -197,7 +197,7 @@ async function onMonitorUp(dbData) {
 
       let embedSend = {
         title: dbData.nama + " kembali dapat diakses seperti biasa",
-        url: `${url}/public/sla-monitor.html?id=${dbData.id}&date=${new Date().toISOString().slice(0, 10)}`,
+        url: `${url}/public/sla-monitor.html?id=${dbData.id}&date=${new Date(Date.now() + (7 * 60 * 60 * 1000)).toISOString().slice(0, 10)}`,
         description: `Situs sudah dapat diakses kembali seperti biasa setelah _down_ kurang lebih **${durasiTxtArr.join(" ")}**.`,
         color: 0x198754,
         fields: [
