@@ -82,11 +82,11 @@ export async function sendMessage(msgText, list) {
         console.log(":: sendMessage (was sendGeneralCL)");
         console.log("\x1b[31m%s\x1b[0m\r\n", e)
 
-        let eStr = e.toString();
-        if (eStr.includes("Cannot read properties of undefined (reading 'send')")) {
-          // 429 probably:
-          restartContainer()
-        }
+        // let eStr = e.toString();
+        // if (eStr.includes("Cannot read properties of undefined (reading 'send')")) {
+        //   // 429 probably:
+        //   restartContainer()
+        // }
       }
     }
   }

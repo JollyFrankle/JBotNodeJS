@@ -17,7 +17,7 @@ function getConfig() {
   }))
 }
 
-function checkChannel(ch_in) {
+function checkChannel(ch_in, siteId) {
   // console.log(ch_in)
   // let ch_list = JSON.parse(ch_in);
   let ch_list = ch_in;
@@ -28,42 +28,143 @@ function checkChannel(ch_in) {
   for (let ch in ch_list) {
     const val = ch_list[ch];
     if (val.active) {
+      if (typeof (val.attrs) !== "undefined" && val.attrs !== null) {
+        if (typeof (val.attrs.muteUntil) === "number") {
+          if (currentTime < val.attrs.muteUntil * 1000) {
+            // Masih dalam waktu mute, skip channel ini
+            continue;
+          } else {
+            // Waktu mute sudah lewat, hapus atribut muteUntil
+            unmuteChannel(siteId, ch);
+          }
+        }
+      }
       let sch = val.schedule;
       if (typeof (sch) === "undefined" || sch === null) {
         ch_allowed.push(ch);
         continue;
-      }
-      if (typeof (val.attrs) !== "undefined" && val.attrs !== null) {
-        if (typeof (val.attrs.muteUntil) !== "undefined" && val.attrs.muteUntil !== null) {
-          if (currentTime < val.attrs.muteUntil * 1000) {
-            // Masih dalam waktu mute, skip channel ini
-            continue;
+      } else {
+        for (let i = 0; i < sch.length; i++) {
+          let start = new Date();
+          let end = new Date();
+          start.setHours(sch[i][0].split(":")[0], sch[i][0].split(":")[1], 0);
+          end.setHours(sch[i][1].split(":")[0], sch[i][1].split(":")[1], 0);
+
+          // start.setTime(
+          //   start.getTime() - 7 * 60 * 60 * 1000 - start.getTimezoneOffset()
+          // );
+          // end.setTime(
+          //   end.getTime() - 7 * 60 * 60 * 1000 - end.getTimezoneOffset()
+          // );
+          // +7 biar WIB --> sudah diatur TimeZone nya di server
+
+          if (currentTime >= start && currentTime <= end) {
+            ch_allowed.push(ch);
+            break;
           }
-        }
-      }
-      for (let i = 0; i < sch.length; i++) {
-        let start = new Date();
-        let end = new Date();
-        start.setHours(sch[i][0].split(":")[0], sch[i][0].split(":")[1], 0);
-        end.setHours(sch[i][1].split(":")[0], sch[i][1].split(":")[1], 0);
-
-        // start.setTime(
-        //   start.getTime() - 7 * 60 * 60 * 1000 - start.getTimezoneOffset()
-        // );
-        // end.setTime(
-        //   end.getTime() - 7 * 60 * 60 * 1000 - end.getTimezoneOffset()
-        // );
-        // +7 biar WIB --> sudah diatur TimeZone nya di server
-
-        if (currentTime >= start && currentTime <= end) {
-          ch_allowed.push(ch);
-          break;
         }
       }
     }
   }
 
   return ch_allowed;
+}
+
+/**
+ * Mute channel for certain time
+ * @param {Number} siteId
+ * @param {Number} channelId
+ * @param {Number} until
+ */
+export async function muteChannel(siteId, channelId, until) {
+  let dbData = CONFIG.find(c => c.config._db.id == siteId)?.config._db;
+  let ch_list = dbData?.channels;
+  if (typeof (ch_list) === "undefined" || ch_list === null) {
+    return {
+      success: false,
+      message: "Site not found"
+    }
+  }
+
+  let ch = ch_list[channelId];
+  if (typeof (ch) === "undefined" || ch === null) {
+    return {
+      success: false,
+      message: "Channel not found"
+    }
+  }
+
+  if (typeof (ch.attrs) === "undefined" || ch.attrs === null) {
+    ch.attrs = {};
+  }
+
+  ch.attrs.muteUntil = until;
+
+  // Update database
+  let res = await mysql.query(
+    "UPDATE pm_host SET channels = ? WHERE id = ?",
+    [JSON.stringify(ch_list), siteId],
+    true
+  );
+
+  if (res.status == 200) {
+    return {
+      success: true,
+      message: "Channel muted",
+      data: dbData
+    }
+  }
+
+  return {
+    success: false,
+    message: "Failed to mute channel"
+  }
+}
+
+export async function unmuteChannel(siteId, channelId) {
+  let dbData = CONFIG.find(c => c.config._db.id == siteId)?.config._db;
+  let ch_list = dbData?.channels;
+  if (typeof (ch_list) === "undefined" || ch_list === null) {
+    return {
+      success: false,
+      message: "Site not found"
+    }
+  }
+
+  let ch = ch_list[channelId];
+  if (typeof (ch) === "undefined" || ch === null) {
+    return {
+      success: false,
+      message: "Channel not found"
+    }
+  }
+
+  if (ch.attrs) {
+    delete ch.attrs.muteUntil;
+    if (Object.keys(ch.attrs).length === 0) {
+      delete ch.attrs;
+    }
+  }
+
+  // Update database
+  let res = await mysql.query(
+    "UPDATE pm_host SET channels = ? WHERE id = ?",
+    [JSON.stringify(ch_list), siteId],
+    true
+  );
+
+  if (res.status == 200) {
+    return {
+      success: true,
+      message: "Channel unmuted",
+      data: dbData
+    }
+  }
+
+  return {
+    success: false,
+    message: "Failed to unmute channel"
+  }
 }
 
 function timeDiff(start, end) {
@@ -135,7 +236,7 @@ async function onMonitorError(dbData) {
         }
       }
 
-      let channels = checkChannel(dbData.channels);
+      let channels = checkChannel(dbData.channels, dbData.id);
       console.log(channels);
 
       let sentToList = await sendMsg({ embeds: [embedSend] }, channels);
