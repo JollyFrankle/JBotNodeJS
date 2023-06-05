@@ -1,5 +1,6 @@
 import express from 'express';
 import https from 'https';
+import fs from 'fs';
 import { query } from './modules/mysql2.js';
 import { ActivityType } from 'discord.js';
 import { truncate } from './helpers/utils.js';
@@ -351,6 +352,16 @@ app.use("/public", express.static("public"));
 export function keepAlive() {
   let port = process.env.PORT || 3000;
   app.listen(port);
+
+  // HTTPS
+  if (process.env.HTTPS_PORT && process.env.HTTPS_URL) {
+    const httpsOptions = {
+      key: fs.readFileSync(`/etc/letsencrypt/live/${process.env.HTTPS_URL}/privkey.pem`),
+      cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.HTTPS_URL}/cert.pem`),
+      ca: fs.readFileSync(`/etc/letsencrypt/live/${process.env.HTTPS_URL}/fullchain.pem`)
+    }
+    https.createServer(httpsOptions, app).listen(process.env.HTTPS_PORT);
+  }
 }
 
 export const url = "https://jbotnode.jollyfrankle.repl.co";
