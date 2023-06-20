@@ -37,7 +37,11 @@ const tempdb = "./storage/tempdb.log";
  */
 export async function query(sql, params = [], storeIfFailed = false) {
   let con = null;
-  let returnData = null;
+  let returnData = {
+    status: 500,
+    data: [],
+    error: ""
+  };
 
   try {
     con = await mysql.createConnection(mysql_config);

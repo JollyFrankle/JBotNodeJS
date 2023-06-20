@@ -4,6 +4,10 @@ export const Format = {
   TIME: 2
 }
 
+const monthNames = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
 /**
  * Format date to SQL-compatible format
  * @param {Date} dateObj
@@ -28,13 +32,10 @@ export function sqlDate(dateObj = new Date(), format = Format.DATETIME) {
  * @param {Date} date
  * @returns {String} Formatted date
  */
-export function dateFormatIndo(date) {
-  // plus 7 hours
-  // date.setHours(date.getHours() + 7);
-
-  var monthNames = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-  ];
+export function dateFormatIndo(date, convertUTC = false) {
+  if(convertUTC) {
+    date = convertFromUTC(date);
+  }
 
   var day = date.getDate();
   var monthIndex = date.getMonth();
@@ -48,6 +49,17 @@ export function dateFormatIndo(date) {
   let monthShort = monthNames[monthIndex].substring(0, 3);
 
   return day + ' ' + monthShort + ' ' + year + ', pkl. ' + hours + '.' + minutes + '.' + seconds + ' WIB';
+}
+
+/**
+ * Format date to Indonesian (WIB)
+ * @param {Date} date
+ * @returns {Date} Converted date
+ */
+export function convertFromUTC(date) {
+  let offset = date.getTimezoneOffset();
+  date.setMinutes(date.getMinutes() - offset);
+  return date;
 }
 
 /**

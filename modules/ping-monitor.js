@@ -388,14 +388,16 @@ async function getSLAToleranceMs(prev = null) {
 
 
 // [NEW] Automatically adjust connection time levels every minute
+/**
+ * @type {number}
+ */
+let pingToleranceLevel = null;
 function autoAdjustCT() {
-  let prevToleranceLevel = null;
-  function __innerAACT() {
-    getSLAToleranceMs(prevToleranceLevel).then(res => {
-      prevToleranceLevel = res
+  const __innerAACT = () => {
+    getSLAToleranceMs(pingToleranceLevel).then(res => {
+      pingToleranceLevel = res
       for (let monitor of CONFIG) {
-        monitor.httpOptions.timeout = monitor.config._db.timeout_ms + prevToleranceLevel
-        monitor.config._db.ping_tolerance_ms = prevToleranceLevel
+        monitor.httpOptions.timeout = monitor.config._db.timeout_ms + pingToleranceLevel
       }
     }).catch(e => {
       console.error(e)
@@ -446,7 +448,7 @@ async function startMonitor() {
       ignoreSSL: true,
 
       httpOptions: {
-        timeout: dbData.timeout_ms + dbData.ping_tolerance_ms
+        timeout: dbData.timeout_ms + 300
       },
 
       config: {
@@ -466,7 +468,7 @@ async function startMonitor() {
     let dbData = monitor.config._db;
 
     monitor.on("up", async (res, state) => {
-      res.responseTime = (res.responseTime - dbData.ping_tolerance_ms > 1) ? res.responseTime - dbData.ping_tolerance_ms : 1;
+      res.responseTime = (res.responseTime - pingToleranceLevel > 1) ? res.responseTime - pingToleranceLevel : 1;
       // Insert to database pm_results
       mysql.query(
         "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
