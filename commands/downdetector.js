@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, SlashCommandStringOption, ChatInputCommandInteraction } from 'discord.js';
-import * as mysql from '../modules/mysql2.js';
+import { query } from '../modules/mysql2.js';
 import { muteChannel as muteChannelPM, unmuteChannel as unmuteChannelPM, getConfig } from '../modules/ping-monitor.js';
 
 let cache = [];
@@ -7,7 +7,7 @@ let cache = [];
 async function getPMHosts(channelId = null, findNotIn = false) {
 
   // if(cache.length == 0) {
-    let result = await mysql.query("SELECT id, nama, channels FROM pm_host ORDER BY nama ASC;")
+    let result = await query("SELECT id, nama, channels FROM pm_host ORDER BY nama ASC;")
     if(result.status == 200) {
       let rows = result.data;
       for(let row of rows) {

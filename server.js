@@ -227,6 +227,37 @@ app.post("/auth/webhook", async (req, res) => {
   })
 })
 
+app.post("/auth/notify", async (req, res) => {
+  const type = req.body?.type;
+  if (typeof(type) == "undefined") {
+    return res.status(400).send({
+      status: 400,
+      message: "Bad Request"
+    })
+  }
+
+  switch(type) {
+    case "kkn":
+      const embed = (await import("./modules/quotesKKN.js")).getTodayQuotesAsDcEmbed();
+      if (!embed) {
+        return res.status(404).send({
+          status: 404,
+          message: "No KKN quotes found"
+        })
+      }
+      dcBot.sendMsg({ embeds: [embed] }, ["1095722406972239934"]);
+      return res.send({
+        status: 200,
+        message: "OK"
+      })
+    default:
+      return res.status(400).send({
+        status: 400,
+        message: "Bad Request"
+      })
+  }
+})
+
 /**
  * API routes (without auth)
  */

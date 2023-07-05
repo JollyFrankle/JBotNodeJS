@@ -3,7 +3,7 @@ import { query } from '../modules/mysql2.js'
 import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
 import { client } from '../helpers/bot.js';
 // import Database from '@replit/database';
-import db from '../helpers/database.js';
+// import db from '../helpers/database.js';
 // const db = new Database();
 
 async function checkEveryMinute() {
@@ -27,7 +27,10 @@ async function checkEveryMinute() {
 
 (() => {
   let millisBeforeNextMinute = 60000 - (Date.now() % 60000);
-  setInterval(checkEveryMinute, millisBeforeNextMinute)
+  setTimeout(() => {
+    checkEveryMinute()
+    setInterval(checkEveryMinute, 60000)
+  }, millisBeforeNextMinute)
   checkEveryMinute()
 })();
 

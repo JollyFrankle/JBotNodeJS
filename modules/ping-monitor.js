@@ -501,22 +501,7 @@ async function startMonitor() {
 }
 
 
-
-async function addChannel(pmId, channelId) {
-
-}
-
-
-
-async function removeChannel(pmId, channelId) {
-
-}
-
-
-
 export {
   startMonitor as start,
-  addChannel as addCh,
-  removeChannel as removeCh,
   getConfig
 };
