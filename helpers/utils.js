@@ -4,6 +4,18 @@ export const Format = {
   TIME: 2
 }
 
+export const TextColorFormat = {
+  BLACK: "\x1b[30m%s\x1b[0m",
+  RED: "\x1b[31m%s\x1b[0m",
+  GREEN: "\x1b[32m%s\x1b[0m",
+  YELLOW: "\x1b[33m%s\x1b[0m",
+  BLUE: "\x1b[34m%s\x1b[0m",
+  MAGENTA: "\x1b[35m%s\x1b[0m",
+  CYAN: "\x1b[36m%s\x1b[0m",
+  WHITE: "\x1b[37m%s\x1b[0m",
+  RESET: "\x1b[0m%s\x1b[0m"
+}
+
 const monthNames = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
@@ -74,4 +86,18 @@ export function truncate(str, len) {
   } else {
     return str;
   }
+}
+
+/**
+ * Checks if any of the arguments is empty
+ * @param  {...any} args
+ * @returns {Boolean} True if any of the arguments is empty
+ */
+export function isAnyEmpty(...args) {
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] == null || args[i] == '') {
+      return true;
+    }
+  }
+  return false;
 }

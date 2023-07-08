@@ -1,5 +1,6 @@
 import { url } from '../server.js';
 import * as dcBot from '../index.js';
+import { TextColorFormat } from '../helpers/utils.js';
 
 let tg_template = {
   title: null,
@@ -97,7 +98,7 @@ function tg_send(data) {
           "861647849673981992" // pnc terpesona "-just-info-"
         ]
       ).then((res) => {
-        console.log("\x1b[32m%s\x1b[0m", "[+] Update dari TELEGRAM berhasil dikirim!");
+        console.log(TextColorFormat.GREEN, "[+] Update dari TELEGRAM berhasil dikirim!");
       })
 
       // console.log(embed)
@@ -130,7 +131,7 @@ function tw_send(data) {
   //   "*@kuliah_ftiuajy* di Twitter: " + data.url,
   //   ["346135882983538699"]
   // ).then((res) => {
-  //   console.log("\x1b[32m%s\x1b[0m", "[+] Update dari TWITTER berhasil dikirim!");
+  //   console.log(TextColorFormat.GREEN, "[+] Update dari TWITTER berhasil dikirim!");
   // })
 }
 
@@ -192,7 +193,7 @@ function tw_send_adv(data) {
       "861647849673981992" // pnc terpesona "-just-info-"
     ]
   ).then((res) => {
-    console.log("\x1b[32m%s\x1b[0m", "[+] Update dari TWITTER ADVANCED berhasil dikirim!");
+    console.log(TextColorFormat.GREEN, "[+] Update dari TWITTER ADVANCED berhasil dikirim!");
   })
 }
 

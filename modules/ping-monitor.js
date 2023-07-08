@@ -184,11 +184,13 @@ async function onMonitorError(dbData) {
   let log = dbData.log;
 
   // Insert to database pm_results
-  mysql.query(
-    "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
-    [dbData.id, null, sqlDate()],
-    true
-  );
+  if(!process.env["IS_DEV"]) {
+    mysql.query(
+      "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
+      [dbData.id, null, sqlDate()],
+      true
+    );
+  }
 
   if (log.status == "up") {
     // kalau masih up tapi sebenarnya sudah down, ubah status log:
@@ -470,11 +472,13 @@ async function startMonitor() {
     monitor.on("up", async (res, state) => {
       res.responseTime = (res.responseTime - pingToleranceLevel > 1) ? res.responseTime - pingToleranceLevel : 1;
       // Insert to database pm_results
-      mysql.query(
-        "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
-        [dbData.id, res.responseTime, sqlDate()],
-        true
-      );
+      if(!process.env["IS_DEV"]) {
+        mysql.query(
+          "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
+          [dbData.id, res.responseTime, sqlDate()],
+          true
+        );
+      }
 
       onMonitorUp(dbData);
     });

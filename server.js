@@ -3,7 +3,6 @@ import https from 'https';
 import fs from 'fs';
 import { query } from './modules/mysql2.js';
 import { ActivityType } from 'discord.js';
-import { truncate } from './helpers/utils.js';
 import * as dcBot from './index.js';
 import * as utils from './helpers/utils.js';
 
@@ -63,7 +62,7 @@ app.post("/update_status", async (req, res) => {
   }
 
   // Set lagu:
-  dcBot.client.user.setActivity(truncate(qStr.title, 96), {
+  dcBot.client.user.setActivity(utils.truncate(qStr.title, 96), {
     type: ActivityType.Listening
   });
 
@@ -259,6 +258,67 @@ app.post("/auth/notify", async (req, res) => {
 })
 
 /**
+ * API routes with auth using /auth
+ */
+app.post("/auth/api/register_device", async (req, res) => {
+  const qStr = req.body;
+  const data = {
+    token: qStr.token,
+    manufacturer: qStr.manufacturer,
+    model: qStr.model,
+    sdk_version: qStr.sdk_version,
+  }
+
+  if (utils.isAnyEmpty(data.token, data.manufacturer, data.model, data.sdk_version)) {
+    return res.send({
+      status: 400,
+      message: "Bad Request",
+      data: data
+    })
+  }
+
+  const result = await query("INSERT INTO android_devices (token, manufacturer, model, sdk_version) VALUES (?, ?, ?, ?)", [data.token, data.manufacturer, data.model, data.sdk_version])
+
+  if (result.status == 200) {
+    return res.send({
+      status: 200,
+      message: "OK"
+    })
+  } else {
+    return res.send({
+      status: 500,
+      message: "Internal Server Error"
+    })
+  }
+})
+
+app.get("/auth/api/reminders", async (_, res) => {
+  const reminders = await query("SELECT * FROM reminders");
+
+  return res.send({
+    status: 200,
+    data: reminders.data
+  });
+})
+
+app.get("/auth/api/reminders/:id", async (req, res) => {
+  const id = req.params.id;
+  const reminders = await query("SELECT * FROM reminders WHERE id = ?", [id]);
+
+  if (reminders.data.length == 0) {
+    return res.send({
+      status: 404,
+      message: "Reminder not found"
+    });
+  }
+
+  return res.send({
+    status: 200,
+    data: reminders.data[0]
+  });
+})
+
+/**
  * API routes (without auth)
  */
 app.post("/api/sla-summary", async (req, res) => {
@@ -347,30 +407,6 @@ app.get("/terminal", async (req, res) => {
     <pre>${htmlOutput}</pre>
   </body>`);
 })
-
-// app.get("/convert", async (req, res) => {
-//   let file = "./public/storage/tempdb2.log";
-
-//   const fs = await import("fs");
-//   fs.readFile(file, "utf8", (err, data) => {
-//     if (err) {
-//       return res.send(err);
-//     }
-
-//     let json = JSON.parse(data);
-//     let file2 = "./public/storage/tempdb.log";
-
-//     // let dataToWrite =
-//     for(let i in json) {
-//       let item = json[i];
-//       let dataTW  = [ item.sql, item.params, item.sif ]
-//       fs.appendFileSync(file2, JSON.stringify(dataTW) + "\n");
-//       console.log("OK for " + dataTW)
-//     }
-
-//     return res.send("OK");
-//   })
-// })
 
 /**
  * Static route: `public` folder

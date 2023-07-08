@@ -8,23 +8,24 @@ import * as dcCal from './modules/calendar.js';
 // import * as dcRRI from './modules/rrikupang.js';
 import * as monitor from './modules/ping-monitor.js';
 import { query } from './modules/mysql2.js';
+import { TextColorFormat } from './helpers/utils.js';
 
 const _startTime = new Date().getTime()
 
 let mysqlCheckCount = 0;
 async function checkMySql() {
   if(mysqlCheckCount++ > 9) {
-    console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL] Aborting connection check, too many attempts.");
+    console.log(TextColorFormat.RED + "\r\n", "[MySQL] Aborting connection check, too many attempts.");
     return;
   }
   query("SELECT 1;").then((res) => {
     if(res.status == 200) {
-      console.log("\x1b[36m%s\x1b[0m", "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
+      console.log(TextColorFormat.CYAN, "[MySQL] Connection time circa " + (new Date().getTime() - _startTime) + " ms")
 
       // Start ping monitor
       monitor.start()
     } else {
-      console.log("\x1b[31m%s\x1b[0m\r\n", "[MySQL]\r\n" + res.error)
+      console.log(TextColorFormat.RED + "\r\n", "[MySQL]\r\n" + res.error)
       setTimeout(checkMySql, 5000)
     }
   })
@@ -34,7 +35,7 @@ checkMySql();
 process.on('uncaughtException', async (e) => {
   console.log(new Date());
   console.log(":: uncaughtException");
-  console.log("\x1b[31m%s\x1b[0m\r\n", e)
+  console.log(TextColorFormat.RED + "\r\n", e)
   await sendMessage("> **Uncaught Exception:**\r\n" + e.message, ["971697363615899688"]);
 });
 
@@ -123,7 +124,7 @@ export {
  */
 
 client.on("ready", async () => {
-  console.log("\x1b[36m%s\x1b[0m", "[Discord] Connected in " + (new Date().getTime() - _startTime) + " ms")
+  console.log(TextColorFormat.CYAN, "[Discord] Connected in " + (new Date().getTime() - _startTime) + " ms")
   await sendMessage("> **Bot Reboot:**\r\nReboot done at <t:" + parseInt(client.readyTimestamp / 1000) + ":F>", ["971697363615899688"]);
   // setRRI();
 });
@@ -528,7 +529,7 @@ client.login(process.env['TOKEN']).then().catch(reason => {
  * Dev Bot Configurations
  */
 clientDev.login(process.env['TOKEN_DEV']).then(() => {
-  console.log("\x1b[36m%s\x1b[0m", "[Discord] Dev bot connected in " + (new Date().getTime() - _startTime) + " ms")
+  console.log(TextColorFormat.CYAN, "[Discord] Dev bot connected in " + (new Date().getTime() - _startTime) + " ms")
 }).catch(reason => {
   console.log("Login failed: " + reason);
 });
@@ -538,7 +539,7 @@ clientDev.login(process.env['TOKEN_DEV']).then(() => {
  */
 client
   .on("debug", (e, logs) => {
-    // console.log("[dcC] \x1b[34m%s\x1b[0m", e)
+    // console.log("[dcC] " + TextColorFormat.YELLOW, e)
     if (e.includes("Hit a 429 while executing a request.")) {
       // hit a 429, kill 1
       console.log("We've really hit a 429!")
@@ -548,10 +549,10 @@ client
   .on("warn", (e, logs) => {
     console.log(new Date())
     console.log(":: Discord Bot WARNING")
-    console.log("\x1b[33m%s\x1b[0m\r\n", logs)
+    console.log(TextColorFormat.YELLOW + "\r\n", logs)
   })
   .on("error", (e, logs) => {
     console.log(new Date())
     console.log(":: Discord Bot ERROR")
-    console.log("\x1b[31m%s\x1b[0m\r\n", logs)
+    console.log(TextColorFormat.RED + "\r\n", logs)
   })

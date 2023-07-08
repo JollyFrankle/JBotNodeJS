@@ -2,9 +2,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { query } from '../modules/mysql2.js'
 import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
 import { client } from '../helpers/bot.js';
-// import Database from '@replit/database';
-// import db from '../helpers/database.js';
-// const db = new Database();
+import { sendNotification } from '../helpers/firebaseAdmin.js';
 
 async function checkEveryMinute() {
   let currentReminders = await getCurrentReminders();
@@ -21,6 +19,23 @@ async function checkEveryMinute() {
       userObj.send(`<@${user}>\n**Reminder** for ${dateFormatIndo(new Date(reminder.timestamp), true)}:\nMessage:\n${message}`);
 
       console.log(`Sent reminder to ${user} at ${dateFormatIndo(new Date(reminder.timestamp), true)}`);
+    }
+
+    // Send notification to device
+    const reminderList = await query("SELECT * FROM android_devices")
+    for (let device of reminderList.data) {
+      try {
+        sendNotification(
+          device.token,
+          message,
+          `Deadline pada ${dateFormatIndo(new Date(reminder.timestamp), true)}!`,
+          {
+            type: "reminder",
+          }
+        )
+      } catch (e) {
+        console.log(e)
+      }
     }
   }
 }
