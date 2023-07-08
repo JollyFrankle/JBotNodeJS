@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { query } from '../modules/mysql2.js'
-import { sqlDate, dateFormatIndo } from '../helpers/utils.js';
+import { sqlDate, dateFormatIndo, TextColorFormat } from '../helpers/utils.js';
 import { client } from '../helpers/bot.js';
 import { sendNotification } from '../helpers/firebaseAdmin.js';
 
@@ -18,7 +18,7 @@ async function checkEveryMinute() {
       let userObj = await client.users.fetch(user);
       userObj.send(`<@${user}>\n**Reminder** for ${dateFormatIndo(new Date(reminder.timestamp), true)}:\nMessage:\n${message}`);
 
-      console.log(`Sent reminder to ${user} at ${dateFormatIndo(new Date(reminder.timestamp), true)}`);
+      console.log(TextColorFormat.GREEN, `Sent reminder to ${user} at ${dateFormatIndo(new Date(reminder.timestamp), true)}`);
     }
 
     // Send notification to device
@@ -38,16 +38,13 @@ async function checkEveryMinute() {
       }
     }
   }
+
+  // Next reminder
+  let millisBeforeNextMinute = 60000 - (Date.now() % 60000);
+  setTimeout(checkEveryMinute, millisBeforeNextMinute);
 }
 
-(() => {
-  let millisBeforeNextMinute = 60000 - (Date.now() % 60000);
-  setTimeout(() => {
-    checkEveryMinute()
-    setInterval(checkEveryMinute, 60000)
-  }, millisBeforeNextMinute)
-  checkEveryMinute()
-})();
+checkEveryMinute();
 
 /**
  * Inserts a reminder into the database

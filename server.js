@@ -318,6 +318,56 @@ app.get("/auth/api/reminders/:id", async (req, res) => {
   });
 })
 
+app.post("/auth/api/reminders", async (req, res) => {
+  const qStr = req.body;
+  const data = {
+    user_id: qStr.user_id || process.env.DC_USER_ID,
+    message: qStr.message,
+    timestamp: utils.sqlDate(new Date(qStr.timestamp))
+  }
+
+  if (utils.isAnyEmpty(data.user_id, data.message, data.timestamp)) {
+    return res.send({
+      status: 400,
+      message: "Bad Request",
+      data: data
+    })
+  }
+
+  const result = await query("INSERT INTO reminders (user_id, message, timestamp) VALUES (?, ?, ?)", [data.user_id, data.message, data.timestamp])
+
+  if (result.status == 200) {
+    return res.send({
+      status: 200,
+      message: "Successfully added reminder",
+      data: data
+    })
+  }
+})
+
+app.delete("/auth/api/reminders/:id", async (req, res) => {
+  const id = req.params.id;
+  const result = await query("DELETE FROM reminders WHERE id = ?", [id]);
+
+  if (result.status == 200) {
+    return res.send({
+      status: 200,
+      message: "Successfully deleted reminder"
+    })
+  }
+})
+
+app.get("/auth/api/reminders/nearest", async (_, res) => {
+  const result = await query("SELECT * FROM reminders WHERE timestamp > NOW() ORDER BY timestamp ASC LIMIT 1");
+
+  if (result.status == 200) {
+    return res.send({
+      status: 200,
+      data: result.data[0] || null
+    })
+  }
+})
+
 /**
  * API routes (without auth)
  */
