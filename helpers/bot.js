@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, Events } from 'discord.js';
+import { TextColorFormat } from './utils.js';
 
 export const client = new Client({
   intents: [
@@ -80,7 +81,7 @@ export async function sendMessage(msgText, list) {
       } catch (e) {
         console.log(new Date());
         console.log(":: sendMessage (was sendGeneralCL)");
-        console.log("\x1b[31m%s\x1b[0m\r\n", e)
+        console.log(TextColorFormat.RED + "\r\n", e)
 
         // let eStr = e.toString();
         // if (eStr.includes("Cannot read properties of undefined (reading 'send')")) {
@@ -98,12 +99,12 @@ export async function sendMessage(msgText, list) {
  * @returns {never}
  */
 export function restartContainer() {
- console.log("\x1b[33m%s\x1b[0m", "[!] restartContainer triggered");
+ console.log(TextColorFormat.RED, "[!] restartContainer triggered");
  process.exit(1)
 }
 
 // export function emergencyShutdown() {
-//   console.log("\x1b[33m%s\x1b[0m", "[!] emergencyShutdown triggered");
+//   console.log(TextColorFormat.RED, "[!] emergencyShutdown triggered");
 //   client.destroy();
 //   clientDev.destroy();
 // }
