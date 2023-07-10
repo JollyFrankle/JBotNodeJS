@@ -5,3 +5,4 @@ node_modules
 storage
 message.json
 adminSDK.json
+package-lock.json
