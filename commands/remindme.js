@@ -28,9 +28,10 @@ async function checkEveryMinute() {
         sendNotification(
           device.token,
           message,
-          `Deadline pada ${dateFormatIndo(new Date(reminder.timestamp), true)}!`,
+          dateFormatIndo(new Date(reminder.timestamp), true),
           {
             type: "reminder",
+            category: reminder.category,
           }
         )
       } catch (e) {

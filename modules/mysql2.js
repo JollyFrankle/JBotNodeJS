@@ -77,6 +77,77 @@ export async function query(sql, params = [], storeIfFailed = false) {
   return returnData;
 }
 
+/**
+ * Inserts a row into a table and returns a JSON object with the query results or an error message if the query fails.
+ * @param {*} tableName The name of the table to insert into
+ * @param {*} dataObject An object with the keys being the column names and the values being the values to insert
+ * @returns {Promise<Object>} - A Promise that resolves to a JSON object with the properties that `query()` returns
+ */
+export async function insert(tableName, dataObject) {
+  let con = null;
+  let returnData = {
+    status: 500,
+    data: [],
+    error: ""
+  };
+
+  try {
+    con = await mysql.createConnection(mysql_config);
+    let sql = `INSERT INTO ${tableName} (${Object.keys(dataObject).join(', ')}) VALUES (${Object.keys(dataObject).map(() => '?').join(', ')})`;
+    let params = Object.values(dataObject);
+    let [rows, _] = await con.execute(sql, params);
+    returnData = {
+      status: 200,
+      data: rows
+    }
+  } catch (e) {
+    console.error(e)
+
+    returnData = {
+      status: e.errno,
+      error: e
+    }
+  }
+
+  return returnData;
+}
+
+/**
+ * Updates a row in a table and returns a JSON object with the query results or an error message if the query fails.
+ * @param {*} tableName The name of the table to update
+ * @param {*} dataObject An object with the keys being the column names and the values being the values to update
+ * @param {*} whereObject An object with the keys being the column names and the values being the values to match
+ * @returns {Promise<Object>} - A Promise that resolves to a JSON object with the properties that `query()` returns
+ */
+export async function update(tableName, dataObject, whereObject) {
+  let con = null;
+  let returnData = {
+    status: 500,
+    data: [],
+    error: ""
+  };
+
+  try {
+    con = await mysql.createConnection(mysql_config);
+    let sql = `UPDATE ${tableName} SET ${Object.keys(dataObject).map((key) => `${key} = ?`).join(', ')} WHERE ${Object.keys(whereObject).map((key) => `${key} = ?`).join(' AND ')}`;
+    let params = [...Object.values(dataObject), ...Object.values(whereObject)];
+    let [rows, _] = await con.execute(sql, params);
+    returnData = {
+      status: 200,
+      data: rows
+    }
+  } catch (e) {
+    console.error(e)
+
+    returnData = {
+      status: e.errno,
+      error: e
+    }
+  }
+
+  return returnData;
+}
+
 let LOCK = false;
 async function massQueryFromTempDb() {
   if(LOCK !== true) {

@@ -1,10 +1,11 @@
 import express from 'express';
 import https from 'https';
 import fs from 'fs';
-import { query } from './modules/mysql2.js';
+import { query, insert, update } from './modules/mysql2.js';
 import { ActivityType } from 'discord.js';
 import * as dcBot from './index.js';
 import * as utils from './helpers/utils.js';
+import * as ReminderController from './controllers/ReminderController.js';
 
 const app = express()
 
@@ -269,7 +270,7 @@ app.post("/auth/api/register_device", async (req, res) => {
     sdk_version: qStr.sdk_version,
   }
 
-  if (utils.isAnyEmpty(data.token, data.manufacturer, data.model, data.sdk_version)) {
+  if (utils.isAnyEmptyObject(data)) {
     return res.send({
       status: 400,
       message: "Bad Request",
@@ -292,81 +293,12 @@ app.post("/auth/api/register_device", async (req, res) => {
   }
 })
 
-app.get("/auth/api/reminders", async (_, res) => {
-  const reminders = await query("SELECT * FROM reminders");
-
-  return res.send({
-    status: 200,
-    data: reminders.data
-  });
-})
-
-app.get("/auth/api/reminders/:id", async (req, res) => {
-  const id = req.params.id;
-  const reminders = await query("SELECT * FROM reminders WHERE id = ?", [id]);
-
-  if (reminders.data.length == 0) {
-    return res.send({
-      status: 404,
-      message: "Reminder not found"
-    });
-  }
-
-  return res.send({
-    status: 200,
-    data: reminders.data[0]
-  });
-})
-
-app.post("/auth/api/reminders", async (req, res) => {
-  const qStr = req.body;
-  const data = {
-    user_id: qStr.user_id || process.env.DC_USER_ID,
-    message: qStr.message,
-    timestamp: utils.sqlDate(new Date(qStr.timestamp))
-  }
-
-  if (utils.isAnyEmpty(data.user_id, data.message, data.timestamp)) {
-    return res.send({
-      status: 400,
-      message: "Bad Request",
-      data: data
-    })
-  }
-
-  const result = await query("INSERT INTO reminders (user_id, message, timestamp) VALUES (?, ?, ?)", [data.user_id, data.message, data.timestamp])
-
-  if (result.status == 200) {
-    return res.send({
-      status: 200,
-      message: "Successfully added reminder",
-      data: data
-    })
-  }
-})
-
-app.delete("/auth/api/reminders/:id", async (req, res) => {
-  const id = req.params.id;
-  const result = await query("DELETE FROM reminders WHERE id = ?", [id]);
-
-  if (result.status == 200) {
-    return res.send({
-      status: 200,
-      message: "Successfully deleted reminder"
-    })
-  }
-})
-
-app.get("/auth/api/reminders/nearest", async (_, res) => {
-  const result = await query("SELECT * FROM reminders WHERE timestamp > NOW() ORDER BY timestamp ASC LIMIT 1");
-
-  if (result.status == 200) {
-    return res.send({
-      status: 200,
-      data: result.data[0] || null
-    })
-  }
-})
+app.get("/auth/api/reminders", ReminderController.funIndex)
+app.get("/auth/api/reminders/:id", ReminderController.funGet)
+app.post("/auth/api/reminders", ReminderController.funCreate)
+app.put("/auth/api/reminders/:id", ReminderController.funUpdate)
+app.delete("/auth/api/reminders/:id", ReminderController.funDelete)
+app.get("/auth/api/reminders/nearest", ReminderController.funGetNearestReminder)
 
 /**
  * API routes (without auth)

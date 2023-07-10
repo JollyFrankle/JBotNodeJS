@@ -101,3 +101,17 @@ export function isAnyEmpty(...args) {
   }
   return false;
 }
+
+/**
+ * Checks if any property of the object is empty
+ * @param {Object} obj The object to be checked
+ * @returns {Boolean} True if any property of the object is empty
+ */
+export function isAnyEmptyObject(obj) {
+  for (let key in obj) {
+    if (obj[key] == null || obj[key] == '') {
+      return true;
+    }
+  }
+  return false;
+}
