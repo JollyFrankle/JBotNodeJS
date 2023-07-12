@@ -24,7 +24,7 @@ export async function funGet(req, res) {
     const reminders = await query("SELECT * FROM reminders WHERE id = ?", [id]);
 
     if (reminders.data.length == 0) {
-        return res.send({
+        return res.status(404).send({
             status: 404,
             message: "Reminder not found"
         });
@@ -46,16 +46,16 @@ export async function funCreate(req, res) {
         user_id: qStr.user_id || process.env.DC_USER_ID,
         message: qStr.message,
         timestamp: utils.sqlDate(new Date(qStr.timestamp)),
-        category: qStr.category || null
     }
 
     if (utils.isAnyEmptyObject(data)) {
-        return res.send({
+        return res.status(400).send({
             status: 400,
             message: "Bad Request",
             data: data
         })
     }
+    data.category = qStr.category || null
 
     const result = await insert("reminders", data)
 
@@ -84,16 +84,17 @@ export async function funUpdate(req, res) {
         user_id: qStr.user_id || process.env.DC_USER_ID,
         message: qStr.message,
         timestamp: utils.sqlDate(new Date(qStr.timestamp)),
-        category: qStr.category || null
     }
 
     if (utils.isAnyEmptyObject(data)) {
-        return res.send({
+        return res.status(400).send({
             status: 400,
             message: "Bad Request",
             data: data
         })
     }
+
+    data.category = qStr.category || null
 
     const result = await update("reminders", data, { id: data.id })
 

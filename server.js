@@ -294,11 +294,11 @@ app.post("/auth/api/register_device", async (req, res) => {
 })
 
 app.get("/auth/api/reminders", ReminderController.funIndex)
+app.get("/auth/api/reminders/nearest", ReminderController.funGetNearestReminder)
 app.get("/auth/api/reminders/:id", ReminderController.funGet)
 app.post("/auth/api/reminders", ReminderController.funCreate)
 app.put("/auth/api/reminders/:id", ReminderController.funUpdate)
 app.delete("/auth/api/reminders/:id", ReminderController.funDelete)
-app.get("/auth/api/reminders/nearest", ReminderController.funGetNearestReminder)
 
 /**
  * API routes (without auth)

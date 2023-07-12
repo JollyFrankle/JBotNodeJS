@@ -14,7 +14,6 @@ export async function sendNotification(token, title, body, data) {
             body: body
         },
         data: data,
-        priority: 'high',
         token: token
     };
 

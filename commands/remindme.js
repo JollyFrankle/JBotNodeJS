@@ -25,7 +25,7 @@ async function checkEveryMinute() {
     const reminderList = await query("SELECT * FROM android_devices")
     for (let device of reminderList.data) {
       try {
-        sendNotification(
+        await sendNotification(
           device.token,
           message,
           dateFormatIndo(new Date(reminder.timestamp), true),
@@ -35,7 +35,9 @@ async function checkEveryMinute() {
           }
         )
       } catch (e) {
-        console.log(e)
+        if (e.code == "messaging/invalid-registration-token" || e.code == "messaging/registration-token-not-registered") {
+          await query("DELETE FROM android_devices WHERE token = ?", [device.token])
+        }
       }
     }
   }

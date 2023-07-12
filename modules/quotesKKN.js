@@ -8,7 +8,8 @@ const quotes = [
     "Selamat hari kelima KKN!\n\nSetengah perjalanan minggu ini sudah kita lewati, namun semangat dan energi kita tetap berkobar. Jadilah pendengar yang baik dan perhatikan kebutuhan masyarakat. Mari terus bergerak maju, menginspirasi, dan memberikan solusi bagi mereka yang membutuhkan.",
     "Hari keenam KKN, kita semakin dekat dengan tujuan kita.\n\nMelalui kolaborasi dan komunikasi yang baik, kita telah berhasil menjalankan berbagai proyek yang bermanfaat bagi masyarakat. Jangan lupa untuk merayakan setiap pencapaian kecil yang kita raih. Bersama, kita mampu melakukan hal-hal besar!",
     "Selamat hari ketujuh KKN!\n\nMomentum ini adalah waktu yang tepat untuk merefleksikan perjalanan kita selama seminggu ini. Melalui upaya bersama, kita telah memberikan kontribusi yang signifikan bagi masyarakat. Jangan pernah meremehkan kekuatan tim dan kebaikan yang dapat kita sebarkan di sekitar kita.",
-    "Hari kedelapan KKN telah tiba!\n\nMari kita tingkatkan komitmen kita dalam melayani masyarakat. Jangan takut mencoba hal-hal baru dan berinovasi untuk menghadapi tantangan yang ada. Tetap fokus pada tujuan kita dan bersikap gigih. Bersama, kita akan mencapai kesuksesan yang luar biasa!",
+    // "Hari kedelapan KKN telah tiba!\n\nMari kita tingkatkan komitmen kita dalam melayani masyarakat. Jangan takut mencoba hal-hal baru dan berinovasi untuk menghadapi tantangan yang ada. Tetap fokus pada tujuan kita dan bersikap gigih. Bersama, kita akan mencapai kesuksesan yang luar biasa!",
+    "Hari kedelapan KKN!\n\nSelamat memasuki minggu ke-2 Kuliah Kerja Nyata wahai manusia, hati-hati rawan terjadi KKN (Kejebak Kenangan Nih)\n(kalau obot melihat situasi 7 hari terakhir sih, sepertinya pada kejebak kegabutan bukan kejebak kenangan). Semangat, masih ada 22 hari lagi untuk menciptakan perubahan yang berarti!!!",
     "Hari kesembilan KKN!\n\nSaatnya melangkah keluar dari zona nyaman dan mengambil langkah-langkah besar dalam memberikan dampak positif pada masyarakat. Jadikan setiap kesempatan sebagai peluang untuk berbagi pengetahuan, keterampilan, dan cinta kepada sesama. Mari terus bergerak maju!",
     "Selamat hari kesepuluh KKN!\n\nPada titik ini, kita telah menunjukkan ketekunan dan keberanian dalam melayani masyarakat. Jangan lupakan pentingnya menjaga semangat kita tetap menyala. Bersama-sama, kita telah melalui banyak hal dan masih ada banyak kebaikan yang akan kita ciptakan. Teruslah berjuang!",
     "Hari kesebelas KKN, kita telah melewati hampir dua minggu perjalanan ini.\n\nWaktu berlalu dengan cepat, tetapi dampak yang kita buat akan bertahan. Mari kita jaga semangat kita tetap berkobar dan terus berinovasi dalam memberikan solusi yang berkelanjutan bagi masyarakat sekitar.",
@@ -30,7 +31,7 @@ const quotes = [
     "Hari kedua puluh tujuh KKN telah tiba!\n\nPada titik ini, kita telah membentuk ikatan yang kuat dengan masyarakat yang kita layani. Jadikan hubungan ini sebagai modal untuk menciptakan dampak positif yang lebih besar lagi. Teruslah berbagi pengetahuan, keahlian, dan cinta kepada mereka yang membutuhkan.",
     "Selamat hari kedua puluh delapan KKN!\n\nWaktu kita bersama masyarakat semakin dekat dengan akhir. Jangan biarkan kelelahan mengurangi semangat dan dedikasi kita. Tetaplah menginspirasi dan memberikan contoh yang baik melalui tindakan nyata kita. Bersama, kita mampu meninggalkan jejak perubahan yang tak terlupakan.",
     "Hari kedua puluh sembilan KKN telah tiba!\n\nSaat kita memasuki tahap akhir perjalanan ini, luangkan waktu untuk merenung dan menghargai segala pencapaian yang telah kita raih. Teruslah melibatkan masyarakat, menyelesaikan proyek-proyek dengan kualitas tinggi, dan memberikan dampak positif yang berkelanjutan.",
-    "Hari terakhir KKN telah tiba.\n\nSaatnya kita melihat kembali perjalanan yang telah kita tempuh dengan bangga. Dari hari pertama hingga hari ini, kita telah belajar, bertumbuh, dan memberikan kontribusi nyata kepada masyarakat. Terima kasih untuk semangat dan dedikasi kalian semua. Ingatlah, perubahan yang kita mulai di sini akan terus menginspirasi dan memberikan dampak positif dalam kehidupan kita dan masyarakat. Lanjutkanlah menjaga api semangat ini menyala!"
+    "Hari terakhir KKN telah tiba.\n\nSaatnya kita melihat kembali perjalanan yang telah kita tempuh dengan bangga. Dari hari pertama hingga hari ini, kita telah belajar, bertumbuh, dan memberikan kontribusi nyata kepada masyarakat. Terima kasih untuk semangat dan dedikasi kalian semua. Ingatlah, perubahan yang kita mulai di sini akan terus menginspirasi dan memberikan dampak positif dalam kehidupan kita dan masyarakat.\n\nLanjutkanlah menjaga api semangat ini menyala!"
 ]
 
 const tanggalAwalKKN = new Date("2023-07-04")
@@ -48,7 +49,7 @@ export function getTodayQuotesAsDcEmbed() {
     const embed = {
         type: "rich",
         title: `Hari ke-${day + 1} KKN`,
-        description: `${quote}\n\n__#kknitumudah__\n__#kknuajy__`,
+        description: `${quote}\n\n__#kknsemogasemakinmudah__\n__#kknuajy__`,
         color: 0x20c997,
         timestamp: new Date(),
         thumbnail: {
