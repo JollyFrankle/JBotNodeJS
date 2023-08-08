@@ -31,7 +31,7 @@ async function checkEveryMinute() {
           dateFormatIndo(new Date(reminder.timestamp), true),
           {
             type: "reminder",
-            category: reminder.category,
+            category: reminder.category || "",
           }
         )
       } catch (e) {

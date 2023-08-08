@@ -8,7 +8,17 @@ const mysql_config = {
   host: process.env['MYSQL_HOST'],
   user: process.env['MYSQL_USER'],
   password: process.env['MYSQL_PW'],
-  database: process.env['MYSQL_DB']
+  database: process.env['MYSQL_DB'],
+  waitForConnections: true,
+  connectionLimit: 2
+}
+
+const pool = mysql.createPool(mysql_config);
+
+export const OnDuplicate = {
+  DoNothing: 0,
+  Update: 1,
+  Ignore: 2
 }
 
 const tempdb = "./storage/tempdb.log";
@@ -36,7 +46,6 @@ const tempdb = "./storage/tempdb.log";
  * }
  */
 export async function query(sql, params = [], storeIfFailed = false) {
-  let con = null;
   let returnData = {
     status: 500,
     data: [],
@@ -44,15 +53,14 @@ export async function query(sql, params = [], storeIfFailed = false) {
   };
 
   try {
-    con = await mysql.createConnection(mysql_config);
-    let [rows, _] = await con.execute(sql, params);
+    let [rows, _] = await pool.execute(sql, params);
     returnData = {
       status: 200,
       data: rows
     }
   } catch (e) {
     // add to temp db
-    if(storeIfFailed) {
+    if (storeIfFailed) {
       insertToTempDb({
         sql: sql,
         params: params,
@@ -67,9 +75,6 @@ export async function query(sql, params = [], storeIfFailed = false) {
       error: e
     }
   } finally {
-    if(con !== null) {
-      con.end();
-    }
     // Mass query from temp db
     massQueryFromTempDb();
   }
@@ -83,8 +88,7 @@ export async function query(sql, params = [], storeIfFailed = false) {
  * @param {*} dataObject An object with the keys being the column names and the values being the values to insert
  * @returns {Promise<Object>} - A Promise that resolves to a JSON object with the properties that `query()` returns
  */
-export async function insert(tableName, dataObject) {
-  let con = null;
+export async function insert(tableName, dataObject, onDuplicateRule = OnDuplicate.DoNothing) {
   let returnData = {
     status: 500,
     data: [],
@@ -92,10 +96,16 @@ export async function insert(tableName, dataObject) {
   };
 
   try {
-    con = await mysql.createConnection(mysql_config);
-    let sql = `INSERT INTO ${tableName} (${Object.keys(dataObject).join(', ')}) VALUES (${Object.keys(dataObject).map(() => '?').join(', ')})`;
+    let sql = `INSERT INTO ${tableName} (${Object.keys(dataObject).join(', ')}) VALUES (${Object.keys(dataObject).map(() => '?').join(', ')}) `;
+    if (onDuplicateRule === OnDuplicate.Update) {
+      sql += `ON DUPLICATE KEY UPDATE ${Object.keys(dataObject).map((key) => `${key} = VALUES(${key})`).join(', ')}`;
+    } else if (onDuplicateRule === OnDuplicate.Ignore) {
+      let firstKey = Object.keys(dataObject)[0];
+      sql += `ON DUPLICATE KEY UPDATE ${firstKey} = ${firstKey}`;
+    } // else do nothing
+
     let params = Object.values(dataObject);
-    let [rows, _] = await con.execute(sql, params);
+    let [rows, _] = await pool.execute(sql, params);
     returnData = {
       status: 200,
       data: rows
@@ -120,7 +130,6 @@ export async function insert(tableName, dataObject) {
  * @returns {Promise<Object>} - A Promise that resolves to a JSON object with the properties that `query()` returns
  */
 export async function update(tableName, dataObject, whereObject) {
-  let con = null;
   let returnData = {
     status: 500,
     data: [],
@@ -128,10 +137,9 @@ export async function update(tableName, dataObject, whereObject) {
   };
 
   try {
-    con = await mysql.createConnection(mysql_config);
     let sql = `UPDATE ${tableName} SET ${Object.keys(dataObject).map((key) => `${key} = ?`).join(', ')} WHERE ${Object.keys(whereObject).map((key) => `${key} = ?`).join(' AND ')}`;
     let params = [...Object.values(dataObject), ...Object.values(whereObject)];
-    let [rows, _] = await con.execute(sql, params);
+    let [rows, _] = await pool.execute(sql, params);
     returnData = {
       status: 200,
       data: rows
@@ -150,7 +158,7 @@ export async function update(tableName, dataObject, whereObject) {
 
 let LOCK = false;
 async function massQueryFromTempDb() {
-  if(LOCK !== true) {
+  if (LOCK !== true) {
     const readline = await import('readline');
     const fileStream = fs.createReadStream(tempdb);
 
@@ -185,8 +193,14 @@ async function massQueryFromTempDb() {
 
 async function insertToTempDb({ sql, params, sif }) {
   fs.appendFile(tempdb, JSON.stringify([sql, params, sif]) + '\n', (err) => {
-    if(err) {
+    if (err) {
       console.log(err);
     }
   })
+}
+
+export default {
+  query,
+  insert,
+  update
 }

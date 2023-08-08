@@ -178,7 +178,7 @@ function tw_send_adv(data) {
     image: image,
     timestamp: new Date(data.date),
     footer: {
-      text: "JollyBOT Twitter Integration",
+      text: "JollyBOT X Integration",
       icon_url: `${url}/public/images/logo.jpg`
     }
   }
@@ -193,7 +193,7 @@ function tw_send_adv(data) {
       "861647849673981992" // pnc terpesona "-just-info-"
     ]
   ).then((res) => {
-    console.log(TextColorFormat.GREEN, "[+] Update dari TWITTER ADVANCED berhasil dikirim!");
+    console.log(TextColorFormat.GREEN, "[+] Update dari TWITTER [X] ADVANCED berhasil dikirim!");
   })
 }
 
