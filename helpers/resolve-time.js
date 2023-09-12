@@ -104,10 +104,15 @@ export async function resolveForYogyakarta() {
     'https://uny.ac.id/', // Yogyakarta
     'https://itb.ac.id/', // Bandung
     'https://ub.ac.id/', // Malang
-    'https://unpar.ac.id/', // Jakarta (Dewaweb)
+    // 'https://unpar.ac.id/', // Jakarta (Dewaweb) --> swapped, unreliable
     'https://ugm.ac.id/', // Jakarta (Bekasi)
-    'https://unair.ac.id/', // Surabaya
+    // 'https://unair.ac.id/', // Surabaya --> swapped, unreliable
     'https://blog.its.ac.id/', // Surabaya
+    'https://kemdikbud.go.id/', // Jakarta (Tangerang)
+    'https://kemenag.go.id/', // Jayapura
+    'https://kemenkeu.go.id/', // Jakarta
+    'https://kemkes.go.id/', // Jakarta
+    'https://kemenperin.go.id/', // Jakarta
   ];
 
   let promises = [];
