@@ -1,14 +1,14 @@
-import admin from 'firebase-admin';
-import serviceAccount from '../adminSDK.json' assert { type: "json" };
-import { TextColorFormat } from './utils.js';
+import admin, { messaging } from 'firebase-admin';
+import { TextColorFormat } from '@h/utils';
+import fs from 'fs';
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(JSON.parse(fs.readFileSync('./firebaseAdmin.json', 'utf8')) as admin.ServiceAccount),
     databaseURL: process.env['FB_DBURL']
 });
 
-export async function sendNotification(token, title, body, data) {
-    const message = {
+export async function sendNotification(token: string, title: string, body: string, data: any): Promise<any> {
+    const message: messaging.Message = {
         notification: {
             title: title,
             body: body

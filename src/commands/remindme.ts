@@ -1,18 +1,18 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { query } from '../modules/mysql2.js'
-import { sqlDate, dateFormatIndo, TextColorFormat } from '../helpers/utils.js';
-import { client } from '../helpers/bot.js';
-import { sendNotification } from '../helpers/firebaseAdmin.js';
+import query from '@m/mysql2'
+import { sqlDate, dateFormatIndo, TextColorFormat } from '@h/utils';
+import { client } from '@h/bot';
+import { sendNotification } from '@h/firebaseAdmin';
 
-async function checkEveryMinute() {
+async function checkEveryMinute(): Promise<void> {
   let currentReminders = await getCurrentReminders();
   // console.log(`${new Date()}: Found ${currentReminders.length} reminders for this minute.`)
 
   for (let reminder of currentReminders) {
-    let user = reminder.user_id;
-    let message = reminder.message;
+    let user: string = reminder.user_id;
+    let message: string = reminder.message;
 
-    let isDeleted = await deleteReminderById(reminder.id);
+    let isDeleted: boolean = await deleteReminderById(reminder.id);
     if (isDeleted) {
       // send reminder
       let userObj = await client.users.fetch(user);
@@ -23,7 +23,7 @@ async function checkEveryMinute() {
 
     // Send notification to device
     const reminderList = await query("SELECT * FROM android_devices")
-    for (let device of reminderList.data) {
+    for (let device of reminderList) {
       try {
         await sendNotification(
           device.token,
@@ -34,7 +34,7 @@ async function checkEveryMinute() {
             category: reminder.category || "",
           }
         )
-      } catch (e) {
+      } catch (e: any) {
         if (e.code == "messaging/invalid-registration-token" || e.code == "messaging/registration-token-not-registered") {
           await query("DELETE FROM android_devices WHERE token = ?", [device.token])
         }
@@ -43,7 +43,7 @@ async function checkEveryMinute() {
   }
 
   // Next reminder
-  let millisBeforeNextMinute = 60000 - (Date.now() % 60000);
+  let millisBeforeNextMinute: number = 60000 - (Date.now() % 60000);
   setTimeout(checkEveryMinute, millisBeforeNextMinute);
 }
 
@@ -56,28 +56,22 @@ checkEveryMinute();
  * @param {String} message
  * @returns {Promise<Boolean>} - True if successful, false if not
  */
-async function addReminder(time, user, message) {
-  let sql = "INSERT INTO reminders (user_id, message, timestamp) VALUES (?, ?, ?)";
-  let values = [user, message, sqlDate(time)];
+async function addReminder(time: Date, user: string, message: string): Promise<boolean> {
+  let sql: string = "INSERT INTO reminders (user_id, message, timestamp) VALUES (?, ?, ?)";
+  let values: any[] = [user, message, sqlDate(time)];
   let result = await query(sql, values);
-  if (result.status == 200) {
-    return true;
-  }
-  return false;
+  return true;
 }
 
 /**
  * Gets all active reminders
  * @returns {Promise<Array>} - An array of objects representing the reminders
  */
-async function getActiveReminders() {
-  let sql = "SELECT * FROM reminders WHERE timestamp > ?";
-  let values = [Date.now()];
+async function getActiveReminders(): Promise<any[]> {
+  let sql: string = "SELECT * FROM reminders WHERE timestamp > ?";
+  let values: any[] = [Date.now()];
   let result = await query(sql, values);
-  if (result.status == 200) {
-    return result.data;
-  }
-  return [];
+  return result || [];
 }
 
 /**
@@ -85,28 +79,22 @@ async function getActiveReminders() {
  * @param {Number} id
  * @returns {Promise<Boolean>} - True if successful, false if not
  */
-async function deleteReminderById(id) {
-  let sql = "DELETE FROM reminders WHERE id = ?";
-  let values = [id];
+async function deleteReminderById(id: number): Promise<boolean> {
+  let sql: string = "DELETE FROM reminders WHERE id = ?";
+  let values: any[] = [id];
   let result = await query(sql, values);
-  if (result.status == 200) {
-    return true;
-  }
-  return false;
+  return true;
 }
 
 /**
  * Gets all reminders that are the current minute
  * @returns {Promise<Array>} - An array of objects representing the reminders
  */
-async function getCurrentReminders() {
-  let sql = "SELECT * FROM reminders WHERE LEFT(timestamp, 16) = LEFT(?, 16)";
-  let values = [sqlDate(new Date())];
+async function getCurrentReminders(): Promise<any[]> {
+  let sql: string = "SELECT * FROM reminders WHERE LEFT(timestamp, 16) = LEFT(?, 16)";
+  let values: any[] = [sqlDate(new Date())];
   let result = await query(sql, values);
-  if (result.status == 200) {
-    return result.data;
-  }
-  return [];
+  return result || [];
 }
 
 export default {
@@ -129,21 +117,21 @@ export default {
   /**
    * @param {ChatInputCommandInteraction} interaction
    */
-  async execute(interaction) {
-    let hours = interaction.options.getInteger("hours")
-    let minutes = interaction.options.getInteger("minutes")
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+    let hours: number = interaction.options.getInteger("hours")!!
+    let minutes: number = interaction.options.getInteger("minutes")!!
 
-    let time = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
-    let now = Date.now()
-    let then = new Date(now + time)
+    let time: number = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
+    let now: number = Date.now()
+    let then: Date = new Date(now + time)
     then = new Date(then.setSeconds(0, 0))
 
-    let user = interaction.user.id
+    let user: string = interaction.user.id
 
-    let message = interaction.options.getString("message")
+    let message: string = interaction.options.getString("message")!!
 
     // add reminder to database
-    let result = await addReminder(then, user, message)
+    let result: boolean = await addReminder(then, user, message)
     if (result) {
       await interaction.reply({ content: `**Reminder** set for ${dateFormatIndo(then)}:\nMessage:\n${message}\n\nCheck your DMs for the reminder!`, ephemeral: true })
     } else {

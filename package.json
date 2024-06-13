@@ -1,35 +1,39 @@
 {
   "name": "jbotnode",
-  "version": "1.0.0",
+  "version": "2.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node -r dotenv/config index.js",
     "start_env": "node -r dotenv/config index.js",
-    "start_logged": "node index.js > storage/output.log 2>&1"
+    "start_logged": "node index.js > storage/output.log 2>&1",
+    "dev": "ts-node -r dotenv/config src/index.ts",
+    "build": "tsc && tsc-alias -p tsconfig.json && node postbuild.js",
+    "deploy": "npm run build && copyfiles.bat"
   },
   "keywords": [],
-  "author": "",
+  "author": "JollyFrankle",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@discordjs/rest": "^1.6.0",
     "@discordjs/voice": "^0.8.0",
     "@firebase/database": "^0.14.4",
-    "@replit/database": "^2.0.1",
     "ansi-to-html": "^0.7.2",
-    "axios": "^0.26.1",
-    "discord.js": "^14.8.0",
+    "axios": "^1.7.2",
+    "discord.js": "^14.15.2",
     "dotenv": "^16.0.3",
     "express": "^4.17.3",
-    "ffmpeg-static": "^4.4.1",
     "firebase": "^9.21.0",
-    "firebase-admin": "^11.9.0",
-    "libsodium-wrappers": "^0.7.10",
-    "moment-timezone": "^0.5.34",
-    "mysql2": "^2.3.3",
-    "openai": "^3.2.1",
-    "opusscript": "^0.0.8",
-    "ping-monitor": "^0.6.2"
+    "firebase-admin": "^12.1.1",
+    "mysql2": "^3.9.7",
+    "ping-monitor": "^0.6.2",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.4.5"
   }
 }

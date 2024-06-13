@@ -1,107 +1,98 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-// import * as mysql from '../modules/mysql2.js';
-import { getConfig, start } from '../modules/ping-monitor.js';
-import { client, clientDev, restartContainer } from '../helpers/bot.js';
-import { boootupTime } from '../index.js';
+// import { getConfig, start } from '@m/ping-monitor';
+import { client, clientDev, restartContainer, startupTime } from '@h/bot';
+import { checkConnectionTime, resolveForYogyakarta } from '@h/resolve-time';
+import { dateFormatIndo } from '@h/utils';
 
-/**
- *
- * @param {ChatInputCommandInteraction} interaction
- */
-async function cmdPingContime(interaction) {
-  const { checkConnectionTime } = await import('../helpers/resolve-time.js')
-  const { dateFormatIndo } = await import('../helpers/utils.js')
-  let count = interaction.options.getInteger("count")
-  count = (count<1 || count>10) ? 3 : count;
-  let url = interaction.options.getString("url")
+interface PingTime {
+  time: number;
+  duration: number | null;
+  error?: string;
+}
 
-  // Reply first
+const cmdPingContime = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+  let count: number = interaction.options.getInteger("count") || 3;
+  count = (count < 1 || count > 10) ? 3 : count;
+  let url: string = interaction.options.getString("url") || "";
+
   await interaction.reply({
     content: `URL: **${url}**\nAttempt count: ${count}`,
     embeds: [{
       color: 0x6c757d,
       description: 'Loading...',
     }]
-  })
+  });
 
-  let arrTimes = []
-  for(let i=0; i<count; i++) {
-    let time = new Date().getTime()
+  let arrTimes: PingTime[] = [];
+  for (let i = 0; i < count; i++) {
+    let time = new Date().getTime();
     try {
-      let duration = await checkConnectionTime(url)
+      let duration = await checkConnectionTime(url);
       arrTimes.push({
         time: time,
         duration: duration
-      })
-    } catch(e) {
+      });
+    } catch (err: any) {
       arrTimes.push({
         time: time,
         duration: null,
-        error: e
-      })
+        error: err
+      });
     }
   }
 
-  // Response time every pings
   let response = arrTimes.map(r => {
-    let text = `${dateFormatIndo(new Date(r.time))}: ${r.duration}`
-    if(r.error) {
-      text += `\n**[E]**: ${r.error}`
+    let text = `${dateFormatIndo(new Date(r.time))}: ${r.duration}`;
+    if (r.error) {
+      text += `\n**[E]**: ${r.error}`;
     }
-    return text
-  }).join("\n")
+    return text;
+  }).join("\n");
 
-  // Average response time
   let okCount = 0, avgRTime = 0;
   arrTimes.forEach(r => {
-    if(!r.error) {
-      okCount++
-      avgRTime += r.duration
+    if (!r.error) {
+      okCount++;
+      avgRTime += r.duration!;
     }
-  })
-  if(okCount > 0) {
-    avgRTime /= okCount
+  });
+  if (okCount > 0) {
+    avgRTime /= okCount;
   }
-  response += `\n\n**Summary:**\n`
-  response += `Total pings: **${count}**\nSuccess pings: **${okCount}**\nAverage res time: **${avgRTime}**`
+  response += `\n\n**Summary:**\n`;
+  response += `Total pings: **${count}**\nSuccess pings: **${okCount}**\nAverage res time: **${avgRTime}**`;
 
   await interaction.editReply({
     embeds: [{
       color: 0x0d6efd,
       description: response
     }]
-  })
-}
+  });
+};
 
-/**
- *
- * @param {ChatInputCommandInteraction} interaction
- */
-async function cmdPingResolve(interaction) {
-  // Reply first
+const cmdPingResolve = async (interaction: ChatInputCommandInteraction): Promise<void> => {
   await interaction.reply({
     embeds: [{
       color: 0x6c757d,
       description: 'Loading...',
     }]
-  })
+  });
 
-  const { resolveForYogyakarta } = await import('../helpers/resolve-time.js')
-  let data = await resolveForYogyakarta()
+  let data = await resolveForYogyakarta();
 
-  let description = 'Ping times from server:\n'
-  description += '```json\n' + JSON.stringify(data.results, null, "  ") + '```\n'
-  description += 'Average _[adjusted +25ms +0,1x]_: **' + data.average + ' ms**'
+  let description = 'Ping times from server:\n';
+  description += '```json\n' + JSON.stringify(data.results, null, "  ") + '```\n';
+  description += 'Average _[adjusted +25ms +0,1x]_: **' + data.average + ' ms**';
 
   await interaction.editReply({
     embeds: [{
       color: 0x0d6efd,
       description: description
     }]
-  })
-}
+  });
+};
 
-export default {
+const command = {
   isDev: true,
   data: new SlashCommandBuilder()
     .setName("tools")
@@ -109,14 +100,14 @@ export default {
     .addSubcommandGroup(sc =>
       sc.setName("ping")
         .setDescription("Ping monitor management")
-        .addSubcommand(sc =>
-          sc.setName("status")
-            .setDescription("Get the current status of the ping monitor")
-        )
-        .addSubcommand(sc =>
-          sc.setName("start")
-            .setDescription("Start the ping monitor if it is not already running")
-        )
+        // .addSubcommand(sc =>
+        //   sc.setName("status")
+        //     .setDescription("Get the current status of the ping monitor")
+        // )
+        // .addSubcommand(sc =>
+        //   sc.setName("start")
+        //     .setDescription("Start the ping monitor if it is not already running")
+        // )
         .addSubcommand(sc =>
           sc.setName("contime")
             .setDescription("Check connection time to a URL")
@@ -149,46 +140,44 @@ export default {
             .setDescription("Get the current system stats")
         )
     ),
-  /**
-   * @param {ChatInputCommandInteraction} interaction
-   */
-  async execute(interaction) {
+  execute: async (interaction: ChatInputCommandInteraction): Promise<void> => {
     const scg = interaction.options.getSubcommandGroup();
     const sc = interaction.options.getSubcommand();
     if (scg === "ping") {
-      if (sc === "status") {
-        await interaction.reply("```json\n" + JSON.stringify(getConfig(), null, "  ") + "```");
-      } else if (sc === "start") {
-        await interaction.reply("Starting ping monitor...");
-        try {
-          await start();
-          await interaction.editReply("Ping monitor successfully started!");
-        } catch (err) {
-          await interaction.editReply("Failed to start ping monitor: " + err.message);
-          throw err;
-        }
-      } else if (sc === "contime") {
-        await cmdPingContime(interaction)
+      // if (sc === "status") {
+      //   await interaction.reply("json\n" + JSON.stringify(getConfig(), null, "  ") + "");
+      // } else if (sc === "start") {
+      //   await interaction.reply("Starting ping monitor...");
+      //   try {
+      //     await start();
+      //     await interaction.editReply("Ping monitor successfully started!");
+      //   } catch (err: any) {
+      //     await interaction.editReply("Failed to start ping monitor: " + err.message);
+      //     throw err;
+      //   }
+      // } else
+      if (sc === "contime") {
+        await cmdPingContime(interaction);
       } else if (sc === "resolve") {
-        await cmdPingResolve(interaction)
+        await cmdPingResolve(interaction);
       }
     } else if (scg === "system") {
       if (sc === "restart") {
         await interaction.reply({
           content: "Restarting container...",
           ephemeral: true
-        })
+        });
         restartContainer();
       } else if (sc === "stats") {
         const os = await import("os");
-        let output = {
-          "Memory (MB)": {
+        const output = {
+          "Memory Usage (MB)": {
             "RSS (Resident Set Size)": (process.memoryUsage().rss / 1024 / 1024).toFixed(2),
             "Heap Total": (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(2),
             "Heap Used": (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
             "External": (process.memoryUsage().external / 1024 / 1024).toFixed(2)
           },
-          "CPU Usage (%)": (process.cpuUsage().user / 1000).toFixed(2),
+          // "CPU Usage (%)": (process.cpuUsage().user / 1000).toFixed(2),
           "OS": {
             "Platform": os.platform(),
             "Arch": os.arch(),
@@ -200,7 +189,8 @@ export default {
           "NodeJS": {
             "Uptime": process.uptime(),
             "Version": process.version,
-            "Boootup Time": `${new Date(boootupTime)} (${process.env.TZ})`,
+            "PID": process.pid,
+            "Boootup Time": `${new Date(startupTime)} (${process.env.TZ})`,
             "Memory Usage (MB)": (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
             "Discord": {
               "Main": {
@@ -215,9 +205,11 @@ export default {
               }
             }
           }
-        }
-        return interaction.reply("```json\n" + JSON.stringify(output, null, "  ") + "```");
+        };
+        interaction.reply("```json\n" + JSON.stringify(output, null, "  ") + "```");
       }
     }
   }
 };
+
+export default command;

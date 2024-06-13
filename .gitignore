@@ -4,5 +4,8 @@
 node_modules
 storage
 message.json
-adminSDK.json
+firebase*.json
 package-lock.json
+copyfiles.bat
+
+dist
