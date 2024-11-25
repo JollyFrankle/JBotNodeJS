@@ -41,7 +41,7 @@ export default class WebSocketController {
 
         WebSocketController.mcWss.on('connection', (ws, req) => {
             if (process.env.NODE_ENV === "development") {
-            console.log(new Date(), `[WS ${req.headers['sec-websocket-protocol'] ?? 'NULL!'}] established connection from ${req.socket.remoteAddress} to ${req.url}`)
+                console.log(new Date(), `[WS ${req.headers['sec-websocket-protocol'] ?? 'NULL!'}] established connection from ${req.socket.remoteAddress} to ${req.url}`)
             }
 
             // get token from URL (?token=...)

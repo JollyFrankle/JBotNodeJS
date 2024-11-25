@@ -13,6 +13,7 @@ import wh_process from "@m/webhook";
 import deployCommands from './regcmd';
 import MinecraftWebhook from '@m/MinecraftWebhook';
 import WebSocketController from '@c/WebSocketController';
+import PptrAASController from './controllers/PptrAASController';
 
 
 let mysqlCheckCount: number = 0;
@@ -127,7 +128,7 @@ app.get("/", (_req: Request, res: Response) => {
   });
 })
 
-let containerActivity: NodeJS.Timeout | null = null;
+// let containerActivity: NodeJS.Timeout | null = null;
 // app.post("/update_status", async (req: Request, res: Response) => {
 //   // can not be moved into auth because of technical limitation (see RDJ/NowPlayingInfoExporter)
 //   let qStr: any = req.body;
@@ -395,14 +396,20 @@ app.get("/terminal", async (req: Request, res: Response) => {
 })
 
 /**
+ * Microservices
+ */
+app.post("/ms/html-to-pdf", PptrAASController.htmlToPdf);
+app.post("/ms/html-to-img", PptrAASController.htmlToImg);
+
+/**
  * Static route: `public` folder
  */
-app.use("/public", express.static("public"));
+app.use("/public", express.static(`${__dirname}/static`));
 
 /**
  * Exported functions
  */
-(() => {
+;(() => {
   let port = process.env.PORT || 3000;
   const server = app.listen(port, () => {
     client.login(process.env['TOKEN']).then().catch(reason => {

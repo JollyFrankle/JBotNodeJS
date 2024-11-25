@@ -19,14 +19,16 @@
     "@discordjs/voice": "^0.8.0",
     "@firebase/database": "^0.14.4",
     "ansi-to-html": "^0.7.2",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
+    "dayjs": "^1.11.12",
     "discord.js": "^14.15.2",
     "dotenv": "^16.0.3",
-    "express": "^4.17.3",
+    "express": "^4.19.2",
     "firebase": "^9.21.0",
     "firebase-admin": "^12.1.1",
     "mysql2": "^3.9.7",
     "ping-monitor": "^0.6.2",
+    "puppeteer-core": "^23.0.2",
     "ws": "^8.17.0"
   },
   "devDependencies": {

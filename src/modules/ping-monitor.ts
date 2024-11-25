@@ -1,14 +1,13 @@
 // import query from './mysql2';
 // import { sqlDate, dateFormatIndo } from '../helpers/utils';
 // import { baseURL } from '../index';
-// import { sendMsg, client } from '../index';
 
 // // @ts-ignore
 // import Monitor from 'ping-monitor';
 
-// const FAILURE_THRES: number = 4;
+// const FAILURE_THRES = 4;
 // const CONFIG: any[] = [];
-// let isStarted: boolean = false;
+// let isStarted = false;
 
 // function getConfig(): any[] {
 //   return CONFIG.map(c => ({
@@ -91,11 +90,15 @@
 //   ch.attrs.muteUntil = until;
 
 //   // Update database
-//   let res = await mysql.queryLegacy(
+//   let res = await query(
 //     "UPDATE pm_host SET channels = ? WHERE id = ?",
-//     [JSON.stringify(ch_list), siteId],
-//     true
-//   );
+//     [JSON.stringify(ch_list), siteId]
+//   ).catch((e) => {
+//     console.error(e);
+//     return {
+//       status: 500
+//     }
+//   });
 
 //   if (res.status == 200) {
 //     return {
@@ -137,7 +140,7 @@
 //   }
 
 //   // Update database
-//   let res = await mysql.queryLegacy(
+//   let res = await query.queryLegacy(
 //     "UPDATE pm_host SET channels = ? WHERE id = ?",
 //     [JSON.stringify(ch_list), siteId],
 //     true
@@ -171,7 +174,7 @@
 
 //   // Insert to database pm_results
 //   if (!process.env["IS_DEV"]) {
-//     mysql.queryLegacy(
+//     query.queryLegacy(
 //       "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
 //       [dbData.id, null, sqlDate()],
 //       true
@@ -229,7 +232,7 @@
 //       let sentToList = await sendMsg({ embeds: [embedSend] }, channels);
 //       dbData.log.sent_to = sentToList;
 
-//       await mysql.queryLegacy(
+//       await query.queryLegacy(
 //         "UPDATE pm_host SET log = ? WHERE id = ?",
 //         [JSON.stringify(log), dbData.id],
 //         true
@@ -322,7 +325,7 @@
 //         delete log.sent_to;
 //       }
 
-//       await mysql.queryLegacy(
+//       await query.queryLegacy(
 //         "UPDATE pm_host SET log = ? WHERE id = ?",
 //         [JSON.stringify(log), dbData.id],
 //         true
@@ -379,7 +382,7 @@
 //     throw new Error("Monitor already started");
 //   }
 
-//   let result = await mysql.queryLegacy("SELECT * FROM pm_host;");
+//   let result = await query.queryLegacy("SELECT * FROM pm_host;");
 //   let list = result.data || [];
 
 //   if (list.length > 0) {
@@ -430,7 +433,7 @@
 //     monitor.on("up", async (res, state) => {
 //       res.responseTime = (res.responseTime - pingToleranceLevel > 1) ? res.responseTime - pingToleranceLevel : 1;
 //       if (!process.env["IS_DEV"]) {
-//         mysql.queryLegacy(
+//         query.queryLegacy(
 //           "INSERT INTO pm_results (id_host, resp_time, timestamp) VALUES (?,?,?)",
 //           [dbData.id, res.responseTime, sqlDate()],
 //           true
