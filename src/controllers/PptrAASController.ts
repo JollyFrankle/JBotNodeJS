@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
-import puppeteer, { Browser } from "puppeteer-core";
 
+type Browser = import("puppeteer-core", { with: { "resolution-mode": "import" } }).Browser;
 let browser: Browser | null = null
 async function getBrowser() {
+    const puppeteer = await import("puppeteer-core")
     if (browser?.connected) {
         console.log("Reusing existing browser")
         return browser
@@ -73,7 +74,7 @@ export default class PptrAASController {
             const page = await browser.newPage();
 
             await page.setContent(reqHtml, {
-                waitUntil: "networkidle0",
+                waitUntil: "domcontentloaded",
             });
 
             const pdf = await page.pdf(options);
@@ -136,7 +137,7 @@ export default class PptrAASController {
             await page.setViewport(viewport);
 
             await page.setContent(reqHtml, {
-              waitUntil: "networkidle0",
+              waitUntil: "domcontentloaded",
             });
 
             const file = await page.screenshot(options);
